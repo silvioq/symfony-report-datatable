@@ -1,0 +1,23 @@
+{
+    "name": "silvioq/report",
+    "description": "Clase de integración con DataTables",
+    "type": "library",
+    "licence": "MIT",
+    "require": {
+        "doctrine/orm": "^2.4",
+        "symfony/http-foundation": "^3.2|^2.8"
+    },
+    "autoload": {
+        "psr-4": { "Silvioq\\ReportBundle": "./src" },
+        "exclude-from-classmap": [ "/Tests/" ]
+    },
+    "suggest": {
+        "beberlei/DoctrineExtensions": "For DATE_FORMAT functions"
+    },
+    "authors": [
+        {
+            "name": "Silvio",
+            "email": "silvioq@gmail.com"
+        }
+    ]
+}

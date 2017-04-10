@@ -1,0 +1,7 @@
+services:
+#    silvioq_report.example:
+#        class: Silvioq\ReportBundle\Example
+#        arguments: [@service_id, "plain_value", %parameter%]
+    silvioq.report.datatable:
+        class: Silvioq\ReportBundle\Service\DatatableFactory
+        arguments: ["@doctrine", "@request_stack"]
