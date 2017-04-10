@@ -32,7 +32,7 @@ class  FactoryTest  extends  TestCase
 
     public  function  testFactory()
     {
-          $emMock  = $this->getMock('\Doctrine\ORM\EntityManager',
+          $emMock  = $this->createMock('\Doctrine\ORM\EntityManager',
                array('getRepository', 'getClassMetadata', 'persist', 'flush'), array(), '', false);
         
         $factory = new DatatableFactory( $emMock, $this->requestStack );
