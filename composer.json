@@ -9,7 +9,7 @@
         "symfony/http-foundation": "^3.2|^2.8"
     },
     "autoload": {
-        "psr-4": { "Silvioq\\ReportBundle\\": "./src" },
+        "psr-4": { "Silvioq\\ReportBundle\\": "./src/Silvioq/ReportBundle" },
         "exclude-from-classmap": [ "/Tests/" ]
     },
     "suggest": {
