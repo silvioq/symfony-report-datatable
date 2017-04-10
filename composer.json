@@ -6,7 +6,8 @@
     "require": {
         "php": ">=5.4.0",
         "doctrine/orm": "^2.4",
-        "symfony/http-foundation": "^3.2|^2.8"
+        "symfony/http-foundation": "^3.2|^2.8",
+        "symfony/http-kernel": "^3.2"
     },
     "autoload": {
         "psr-4": { "Silvioq\\ReportBundle\\": "./src/Silvioq/ReportBundle" },
@@ -20,5 +21,8 @@
             "name": "Silvio",
             "email": "silvioq@gmail.com"
         }
-    ]
+    ],
+    "require-dev": {
+        "matthiasnoback/symfony-dependency-injection-test": "^1.1"
+    }
 }
