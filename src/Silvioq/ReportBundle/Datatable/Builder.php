@@ -201,13 +201,19 @@ class  Builder {
         foreach( $joins as $a => $j ){
             $cb->leftJoin( $j, $a);
         }
-    
-        if ( !$forCount && isset( $get['start'] ) && $get['length'] != '-1' ){
-            $cb->setFirstResult( (int)$get['start'] )
-               ->setMaxResults( (int)$get['length'] );
-        }
+
+        /**
+         * Si no estamos contando, entonces establecemos
+         * el rango de registros
+         */
+        if( !$forCount && isset( $get['start'] ) )
+            $cb->setFirstResult( (int)$get['start'] );
+
+        if( !$forCount && isset( $get['length'] ) && ((int)$get['length'] ) > 0 )
+             $cb->setMaxResults( (int)$get['length'] );
+
      
-        /*
+        /**
          * Ordering
          */
         if ( !$forCount && isset( $get['order'] ) ){
@@ -346,7 +352,9 @@ class  Builder {
         if( isset( $ct[$column] ) ) return $ct[$column]; else return "unknonw";
     }
 
-
+    /**
+     * TODO: Este código debe ir a una clase aparte
+     */
     private  $parameterCount = 0;
     private  $parameterList  = array();
     private function  createParameter( $str, $cb )
