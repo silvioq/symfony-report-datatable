@@ -172,12 +172,13 @@ class  Builder {
         $cols  = $this->getColumns();
         if( !$table ) throw  new  BuilderException( 'Repositorio no definido' );
         $joins = $this->getJoins();
+        
         /*
          * Set to default
          */
         $aColumns = array();
         $oColumns = array();
-        $mColumns = array();
+        
         foreach($cols as $value){
           if( strpos( $value, '.' ) > 0 ){
               $oColumns[] = $value;
