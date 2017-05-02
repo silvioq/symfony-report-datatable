@@ -4,7 +4,9 @@ namespace  Silvioq\ReportBundle\Tests;
 
 use PHPUnit\Framework\TestCase;
 use Silvioq\ReportBundle\Datatable\Builder;
-use   Doctrine\DBAL\Types\Type as ORMType;
+use Silvioq\ReportBundle\Datatable\BuilderException;
+use Doctrine\DBAL\Types\Type as ORMType;
+use Doctrine\ORM\EntityManager;
 
 class  FilterTest  extends  TestCase
 {
@@ -92,8 +94,67 @@ class  FilterTest  extends  TestCase
                 [ 2, 2 * 2],
                 [ 3, 3 * 2]
             ] );
-        
+
     }
     
+    /**
+     * @covers Builder::filter
+     */
+    public function testThrowsWhenNotExistsColumn()
+    {
+        $emMock = $this
+            ->getMockBuilder(EntityManager::class)
+            ->disableOriginalConstructor()
+            ->getMock();
 
+         $dt = new Builder( $emMock, [ "search" => [ "value" => "x" ] ] );
+         $dt
+            ->add( 'field1' )
+            ->add( 'field2' )
+            ->from( 'Test:Table', 'a' );
+
+         $this->expectException( BuilderException::class );
+         $dt->filter( 'field3', 'get_class' );
+    }
+
+    /**
+     * @covers Builder::filter
+     */
+    public function testThrowsWhenFilterIsAlreadyDefined()
+    {
+        $emMock = $this
+            ->getMockBuilder(EntityManager::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+         $dt = new Builder( $emMock, [ "search" => [ "value" => "x" ] ] );
+         $dt
+            ->add( 'field1' )
+            ->add( 'field2' )
+            ->from( 'Test:Table', 'a' );
+
+         $dt->filter( 'field2', 'get_class' );
+         $this->expectException( BuilderException::class );
+         $dt->filter( 'field2', 'get_class' );
+    }
+
+    /**
+     * @covers Builder::filter
+     */
+    public function testThrowsWhenFilterFunctionIsInvalid()
+    {
+        $emMock = $this
+            ->getMockBuilder(EntityManager::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+         $dt = new Builder( $emMock, [ "search" => [ "value" => "x" ] ] );
+         $dt
+            ->add( 'field1' )
+            ->add( 'field2' )
+            ->from( 'Test:Table', 'a' );
+
+         $this->expectException( \InvalidArgumentException::class );
+         $dt->filter( 'field2', 'none' );
+    }
 }
