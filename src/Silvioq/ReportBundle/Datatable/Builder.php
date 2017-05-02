@@ -26,6 +26,10 @@ class  Builder {
      */
     private  $_em;
 
+    /**
+     * @var array
+     */
+
     private  $filter;
     private  $result;
     private  $columnTypes;
@@ -114,6 +118,9 @@ class  Builder {
         return  $this;
     }
 
+    /**
+     * Filters an output field with a function
+     */
     public  function  filter($colName, $function ){
         $colName = self::normalizeColName($colName);
         if( isset( $this->joins[$colName] ) )
@@ -284,7 +291,8 @@ class  Builder {
         $md = $this->_em->getClassMetadata( $this->getRepo() );
         $alias = $this->getAlias();
         $ret = array();
-        foreach( $md->getFieldNames() as $field )
+        $fieldNames = $md->getFieldNames();
+        foreach( $fieldNames as $field )
         {
             $ret[$alias . "." . $field] = $md->getTypeOfField($field);
         }
@@ -393,8 +401,12 @@ class  Builder {
         }
     }
 
+    /**
+     * Devuelve todas las líneas en formato array, sin nombres de campo (NO_ASSOC)
+     * @return array
+     */
     public  function  getArray(){
-        $ret = array();
+        $ret = [];
         foreach( $this->getAll() as $v ){
             $ret[] = array_values( $v );
         }
