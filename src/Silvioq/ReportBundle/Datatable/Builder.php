@@ -165,6 +165,10 @@ class  Builder {
         return  $this;
     }
 
+    /**
+     * Get main repo
+     * @return string
+     */
     public  function   getRepo(){ return $this->repo; }
     public  function   getAlias(){ return  $this->alias; }
     public  function   getJoins(){ return  $this->joins; }
