@@ -109,8 +109,9 @@ class  ResultTest  extends  TestCase
 
     /**
      * @covers getQuery
+     * @dataProvider  startAndLimit
      */
-    public  function  testGetQueryWithLimit()
+    public  function  testGetQueryWithStartAndLimit($start, $length)
     {
         $emMock  = $this->createMock('\Doctrine\ORM\EntityManager',
                array('getRepository', 'getClassMetadata', 'persist', 'flush'), array(), '', false);
@@ -134,26 +135,40 @@ class  ResultTest  extends  TestCase
             ->method('select')
             ->will($this->returnSelf() )
             ;
-            
-        $qbMock->expects($this->once())
-            ->method('setMaxResults')
-            ->with($this->equalTo(20))
-            ->will($this->returnSelf())
-            ;
+        
+        if( false !== $length )
+            $qbMock->expects($this->once())
+                ->method('setMaxResults')
+                ->with($this->equalTo($length))
+                ->will($this->returnSelf())
+                ;
+        else
+            $qbMock->expects($this->never())
+                ->method('setMaxResults')
+                ;
 
-        $qbMock->expects($this->once())
-            ->method('setFirstResult')
-            ->with($this->equalTo(10))
-            ->will($this->returnSelf())
-            ;
+        if( false !== $start )
+            $qbMock->expects($this->once())
+                ->method('setFirstResult')
+                ->with($this->equalTo($start))
+                ->will($this->returnSelf())
+                ;
+        else
+            $qbMock->expects($this->never())
+                ->method('setFirstResult')
+                ;
 
         $qbMock->expects($this->once())
             ->method('getQuery')
             ->will( $this->returnValue($queryMock) )
             ;
         
-        $dt = new Builder( $emMock, 
-            [ "search" => [ "value" => '' ], "start" => 10, "length" => 20 ] );
+        $params = [ "search" => [ "value" => '' ] ];
+        if( false !== $start ) $params['start'] = $start;
+        if( false !== $length ) $params['length'] = $length;
+        
+        $dt = new Builder( $emMock, $params );
+
         $dt
             ->add( 'field1' )
             ->add( 'field2' )
@@ -162,6 +177,16 @@ class  ResultTest  extends  TestCase
 
         $this->assertInstanceOf( \Doctrine\ORM\AbstractQuery::class, $dt->getQuery() );
         
+    }
+    
+    public function startAndLimit()
+    {
+        return [
+            [ 10, 20 ],
+            [  5, false ],
+            [ false, 50 ],
+            [ false, false ],
+           ] ;
     }
 
 }
