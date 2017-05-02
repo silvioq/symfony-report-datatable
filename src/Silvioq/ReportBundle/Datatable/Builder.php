@@ -463,14 +463,11 @@ class  Builder {
         return null;
     }
 
-
-    public  function  getResult(){
-        if( $this->result === null ){
-            $this->result = $this->getQuery()->getResult();
-        }
-        return $this->result;
-    }
-
+    /**
+     * Get result of query.
+     *
+     * @return iterator
+     */
     public  function  getAll(){
         $cols   = $this->getColumns();
         $result = array();
@@ -500,6 +497,7 @@ class  Builder {
 
     /**
      * Devuelve todas las líneas en formato array, sin nombres de campo (NO_ASSOC)
+     *
      * @return array
      */
     public  function  getArray(){
@@ -562,6 +560,19 @@ class  Builder {
             }
         }
     }
+
+    /**
+     * Get result of query.
+     *
+     * @return array
+     */
+    private  function  getResult(){
+        if( $this->result === null ){
+            $this->result = $this->getQuery()->getResult();
+        }
+        return $this->result;
+    }
+
 }
 
 ?>

@@ -63,7 +63,7 @@ class  WheresTest  extends  TestCase
             ->$functionName( 'a.field1 = 1')
             ;
 
-        $this->assertEquals( $dt->getResult(), [] );
+        $this->assertEquals( $dt->getArray(), [] );
     }
 
 
@@ -130,7 +130,7 @@ class  WheresTest  extends  TestCase
             } )
             ;
 
-        $this->assertEquals( $dt->getResult(), [] );
+        $this->assertEquals( $dt->getArray(), [] );
         $this->assertEquals( 1, $called );
     }
     

@@ -12,6 +12,7 @@ class  ResultTest  extends  TestCase
     /**
      * @covers Builder::add
      * @covers Builder::from
+     * @covers Builder::getResult
      */
     public  function  testQueryResult()
     {
@@ -56,7 +57,7 @@ class  ResultTest  extends  TestCase
             ->from( 'Test:Table', 'a' )
             ;
 
-        $this->assertEquals( $dt->getResult(), [] );
+        $this->assertEquals( $dt->getArray(), [] );
         
     }
     

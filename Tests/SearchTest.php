@@ -105,7 +105,7 @@ class  SearchTest  extends  TestCase
             ->from( 'Test:Table', 'a' )
             ;
 
-        $this->assertEquals( $dt->getResult(), [] );
+        $this->assertEquals( $dt->getArray(), [] );
         
     }
 
@@ -200,7 +200,7 @@ class  SearchTest  extends  TestCase
             ->from( 'Test:Table', 'a' )
             ;
 
-        $this->assertEquals( $dt->getResult(), [] );
+        $this->assertEquals( $dt->getArray(), [] );
         
     }
 
@@ -276,7 +276,7 @@ class  SearchTest  extends  TestCase
             ->from( 'Test:Table', 'a' )
             ;
 
-        $this->assertEquals( $dt->getResult(), [] );
+        $this->assertEquals( $dt->getArray(), [] );
 
     }
 
@@ -352,7 +352,7 @@ class  SearchTest  extends  TestCase
             ->from( 'Test:Table', 'a' )
             ;
 
-        $this->assertEquals( $dt->getResult(), [] );
+        $this->assertEquals( $dt->getArray(), [] );
 
     }
 
