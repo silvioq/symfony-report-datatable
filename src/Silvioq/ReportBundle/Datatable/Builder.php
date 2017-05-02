@@ -129,14 +129,32 @@ class  Builder {
         return  $this;
     }
 
+    /**
+     * Add a condition to global wheres
+     *
+     * @param string|callable $condition  Condition to add to query builder. If it's callable,
+     *                                    $condition is called with QueryBuilder parameter
+     */
     public  function   where( $condition )
     {
+        if( !is_callable( $condition ) && !is_string( $condition ) )
+            throw new \InvalidArgumentException( 'Condition must be callable or simple string' );
+
         $this->wheres[] = $condition;
         return $this;
     }
 
+    /**
+     * Add a condition to filtered wheres
+     *
+     * @param string|callable $condition  Condition to add to query builder. If it's callable,
+     *                                    $condition is called with QueryBuilder parameter
+     */
     public  function  whereOnFiltered( $condition )
     {
+        if( !is_callable( $condition ) && !is_string( $condition ) )
+            throw new \InvalidArgumentException( 'Condition must be callable or simple string' );
+
         $this->wheresOnFilter[] = $condition;
         return $this;
     }

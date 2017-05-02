@@ -3,7 +3,7 @@
 namespace  Silvioq\ReportBundle\Tests;
 
 use PHPUnit\Framework\TestCase;
-
+use Doctrine\ORM\QueryBuilder;
 use Silvioq\ReportBundle\Datatable\Builder;
 
 class  WheresTest  extends  TestCase
@@ -79,7 +79,7 @@ class  WheresTest  extends  TestCase
         $emMock  = $this->createMock('\Doctrine\ORM\EntityManager',
                array('getRepository', 'getClassMetadata', 'persist', 'flush'), array(), '', false);
         $repoMock = $this->createMock( '\Doctrine\ORM\EntityRepository', ["createQueryBuilder"], array(), '', false );
-        $qbMock = $this->createMock( '\Doctrine\ORM\QueryBuilder', ["select", "getQuery", "andWhere"], array(), '', false );
+        $qbMock = $this->createMock( QueryBuilder::class, ["select", "getQuery", "andWhere"], array(), '', false );
         $queryMock = $this->createMock( '\Doctrine\ORM\AbstractQuery', ['getResult'], array(), '', false );
         
         $emMock->expects($this->once())
@@ -124,9 +124,9 @@ class  WheresTest  extends  TestCase
             ->add( 'field1' )
             ->add( 'field2' )
             ->from( 'Test:Table', 'a' )
-            ->$functionName( function($qb) use( &$called, $_self ){
+            ->$functionName( function( $qb) use( &$called, $_self ){
                 $called ++;
-                $_self->assertInstanceOf( \Doctrine\ORM\QueryBuilder::class, $qb );
+                $_self->assertInstanceOf( QueryBuilder::class, $qb );
             } )
             ;
 
