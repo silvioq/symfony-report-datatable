@@ -16,6 +16,7 @@ class  ResultTest  extends  TestCase
                array('getRepository', 'getClassMetadata', 'persist', 'flush'), array(), '', false);
         $repoMock = $this->createMock( '\Doctrine\ORM\EntityRepository', ["createQueryBuilder"], array(), '', false );
         $qbMock = $this->createMock( '\Doctrine\ORM\QueryBuilder', ["select", "getQuery"], array(), '', false );
+        $queryMock = $this->createMock( '\Doctrine\ORM\AbstractQuery', ['getResult'], array(), '', false );
         
         $emMock->expects($this->once())
             ->method('getRepository')
@@ -36,7 +37,12 @@ class  ResultTest  extends  TestCase
             
         $qbMock->expects($this->once())
             ->method('getQuery')
-            ->will( $this->returnValue(true) )
+            ->will( $this->returnValue($queryMock) )
+            ;
+            
+        $queryMock->expects($this->once())
+            ->method('getResult')
+            ->will( $this->returnValue([]))
             ;
             
         $dt = new Builder( $emMock, 
@@ -47,7 +53,7 @@ class  ResultTest  extends  TestCase
             ->from( 'Test:Table', 'a' )
             ;
 
-        $this->assertTrue( $dt->getQuery() );
+        $this->assertEquals( $dt->getResult(), [] );
         
     }
     
