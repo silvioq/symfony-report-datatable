@@ -215,7 +215,7 @@ class  Builder {
                $cb->orderBy($oColumns[ (int)$order['column'] ], $order['dir']);
             }
         }
-      
+
         /*
          * Filtering
          * NOTE this does not match the built-in DataTables filtering which does it
@@ -226,7 +226,9 @@ class  Builder {
             $search = $get['search']['value'];
             $aLike = array();
             for ( $i=0 ; $i<count($oColumns) ; $i++ ){
-                if ( isset($get['columns'][$i]) && $get['columns'][$i]['searchable'] == "true" ){
+                if ( isset($get['columns'][$i])
+                  && isset($get['columns'][$i]['searchable'] )
+                  && false !== $get['columns'][$i]['searchable'] ){
                     $filter = $this->getWhereFor( $oColumns[$i], $search, $cb );
                     if( $filter ) array_push( $aLike, $filter );
                 }
@@ -373,7 +375,7 @@ class  Builder {
         if( $ct === ORMType::STRING || $ct === ORMType::TEXT )
         {
             $param = $this->createParameter( "%" . strtolower( $searchStr ). "%", $cb );
-            return  $cb->expr()->like( 'LOWER( ' . $columnName . ')', $param );
+            return  $cb->expr()->like( sprintf('LOWER(%s)',$columnName), $param );
         }
         elseif( in_array( $ct, array( ORMType::INTEGER, ORMType::SMALLINT, ORMType::BIGINT ) )  && is_numeric( $searchStr ) )
         {
