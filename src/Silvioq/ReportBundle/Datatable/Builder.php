@@ -1,13 +1,18 @@
 <?php
+
 namespace   Silvioq\ReportBundle\Datatable;
 
-use   Silvioq\ReportBundle\Datatable\BuilderException;
-use   Doctrine\ORM\Query\Expr;
-use   Doctrine\DBAL\Types\Type as ORMType;
-use   Doctrine\ORM\EntityManagerInterface;
+use Silvioq\ReportBundle\Datatable\BuilderException;
+use Doctrine\ORM\Query\Expr;
+use Doctrine\DBAL\Types\Type as ORMType;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
 
-
+/**
+ * Datatable builder arrays class
+ *
+ * TODO: Translate to English all doc
+ */
 class  Builder {
 
     private  $alias;
