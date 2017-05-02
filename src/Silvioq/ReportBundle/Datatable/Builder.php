@@ -1,9 +1,11 @@
 <?php
 namespace   Silvioq\ReportBundle\Datatable;
+
 use   Silvioq\ReportBundle\Datatable\BuilderException;
 use   Doctrine\ORM\Query\Expr;
 use   Doctrine\DBAL\Types\Type as ORMType;
 use   Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\QueryBuilder;
 
 
 class  Builder {
@@ -207,6 +209,7 @@ class  Builder {
 
     /**
      * TODO: This function must be implemented in another class. They will receive alias, table, columns, joins and query (get).
+     * @return \Doctrine\ORM\Query
      */
     private  function   dataTableQuery($forCount = false){
         $alias = $this->getAlias();
@@ -357,6 +360,10 @@ class  Builder {
         return  $this->filteredCount;
     }
 
+    /**
+     * Returns ORM Query
+     * @return \Doctrine\ORM\Query
+     */
     public  function  getQuery(){
         if( $this->query === null ){
             $this->query = $this->dataTableQuery();
@@ -401,7 +408,7 @@ class  Builder {
      */
     private  $parameterCount = 0;
     private  $parameterList  = array();
-    private function  createParameter( $str, $cb )
+    private function  createParameter( $str, QueryBuilder $cb )
     {
         $hash = md5( is_array($str) ? join(',', $str) : $str );
         if( isset( $this->parameterList[$hash]) )
