@@ -545,7 +545,10 @@ class  Builder {
         return  $this->count;
     }
 
-    private  function  addWheresToCB( $cb, $wheres )
+    /**
+     * Adds where conditions to QueryBuilder
+     */
+    private  function  addWheresToCB( QueryBuilder $cb, array $wheres )
     {
         foreach( $wheres as $customWhere )
         {
