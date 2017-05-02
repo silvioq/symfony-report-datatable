@@ -11,13 +11,28 @@ class  Builder {
     private  $alias;
     private  $repo;
     private  $joins;
+
+    /**
+     * Global wheres for query
+     * @var array
+     */
     private  $wheres;
+
+    /**
+     * For filtered count wheres for query
+     * @var array
+     */
+    private  $wheresOnFilter;
 
     /**
      * @var array
      */
     private  $get;
 
+    /**
+     * Lista de columnas
+     * @var array
+     */
     private  $cols;
     private  $colsH;
 
@@ -29,7 +44,6 @@ class  Builder {
     /**
      * @var array
      */
-
     private  $filter;
     private  $result;
     private  $columnTypes;
@@ -45,6 +59,7 @@ class  Builder {
         $this->colsH = array();
         $this->filter= array();
         $this->wheres= array();
+        $this->wheresOnFilter = array();
         $this->get   = $get;
         $this->_em   = $em;
 
@@ -101,6 +116,12 @@ class  Builder {
     public  function   where( $condition )
     {
         $this->wheres[] = $condition;
+        return $this;
+    }
+
+    public  function  whereOnFiltered( $condition )
+    {
+        $this->wheresOnFilter[] = $condition;
         return $this;
     }
 
@@ -253,10 +274,16 @@ class  Builder {
                 if( $filter ) $cb->andWhere( $filter );
             }
         }
+
+        /**
+         * Agrego for filtering wheres
+         */
+        $this->addWheresToCB( $cb, $this->wheresOnFilter );
+
         /**
          * Agrego where.
          */
-        $this->addWheresToCB( $cb );
+        $this->addWheresToCB( $cb, $this->wheres );
        
         /*
          * SQL queries
@@ -433,7 +460,7 @@ class  Builder {
                 ->createQueryBuilder($alias)
                 ->select( 'COUNT(' . $alias . ' )' )
                 ->setMaxResults(1);
-            $this->addWheresToCB( $cb );
+            $this->addWheresToCB( $cb, $this->wheres );
 
             // dado que al agregar "wheres" al QueryBuilder puede haber
             // referecias a joins externos, agrego los joins que hubiera
@@ -450,9 +477,9 @@ class  Builder {
         return  $this->count;
     }
 
-    private  function  addWheresToCB( $cb )
+    private  function  addWheresToCB( $cb, $wheres )
     {
-        foreach( $this->wheres as $customWhere )
+        foreach( $wheres as $customWhere )
         {
             if( is_callable( $customWhere ) )
             {
