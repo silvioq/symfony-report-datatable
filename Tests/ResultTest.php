@@ -16,7 +16,7 @@ class  ResultTest  extends  TestCase
     public  function  testQueryResult()
     {
         $emMock  = $this->createMock('\Doctrine\ORM\EntityManager',
-               array('getRepository', 'getClassMetadata', 'persist', 'flush'), array(), '', false);
+               array('getRepository', 'getClassMetadata'), array(), '', false);
         $repoMock = $this->createMock( '\Doctrine\ORM\EntityRepository', ["createQueryBuilder"], array(), '', false );
         $qbMock = $this->createMock( '\Doctrine\ORM\QueryBuilder', ["select", "getQuery", "andWhere"], array(), '', false );
         $queryMock = $this->createMock( '\Doctrine\ORM\AbstractQuery', ['getResult'], array(), '', false );
