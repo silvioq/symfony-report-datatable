@@ -93,4 +93,25 @@ class  BuilderTest  extends  TestCase
         $dt->add( 'field3' );
     }
 
+
+    /**
+     * @covers Builder::getQuery
+     */
+    public function testThrowsOnNoDeclaredRepo()
+    {
+        $emMock = $this
+            ->getMockBuilder(EntityManager::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $dt = new Builder( $emMock, [ ] );
+        $dt
+            ->add( 'field1' )
+            ->add( 'field2' )
+            ;
+
+        $this->expectException( BuilderException::class );
+        $dt->getArray();
+    }
+
 }
