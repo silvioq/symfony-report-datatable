@@ -141,11 +141,25 @@ class  Builder {
 
     /**
      * Filters an output field with a function
+     * @param $colName  string    Column name to apply filter
+     * @param $function callable  Function for filtering. The function receives
+     *                            the entire row in raw format and must return
+     *                            the value
+     * @throws \InvalidArgumentException
+     * @throws BuilderException
+     * @return self
      */
     public  function  filter($colName, $function ){
+        if( !is_callable( $function ) )
+            throw new \InvalidArgumentException( 'Argument #2 must be callable' );
+
+        if( !in_array( $colName, $this->cols ) )
+            throw  new  BuilderException( sprintf( 'Column %s does not exists', $colName ) );
+
         $colName = self::normalizeColName($colName);
-        if( isset( $this->joins[$colName] ) )
-            throw  new  BuilderException( 'Filtro en ' . $colName . ' ya definido' );
+        if( isset( $this->filter[$colName] ) )
+            throw  new  BuilderException( sprintf( 'Filter in column %s already defined', $colName ) );
+
         $this->resetQuery();
         $this->filter[$colName] = $function;
         return  $this;
