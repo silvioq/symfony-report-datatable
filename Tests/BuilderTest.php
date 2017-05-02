@@ -52,7 +52,7 @@ class  BuilderTest  extends  TestCase
     /**
      * @covers Builder::join
      */
-    public function testTrhowOnAlreadyJoined()
+    public function testThrowsOnAlreadyJoined()
     {
         $emMock = $this
             ->getMockBuilder(EntityManager::class)
@@ -70,6 +70,27 @@ class  BuilderTest  extends  TestCase
         $this->expectException( BuilderException::class );
         $dt->join( 'field4', 'c' );
 
+    }
+
+    /**
+     * @covers Builder::add
+     */
+    public function testThrowsOnAlreadyAddedColumn()
+    {
+        $emMock = $this
+            ->getMockBuilder(EntityManager::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $dt = new Builder( $emMock, [ ] );
+        $dt
+            ->add( 'field1' )
+            ->add( 'field2' )
+            ->from( 'Test:Table', 'a' );
+
+        $dt->add( 'field3' );
+        $this->expectException( BuilderException::class );
+        $dt->add( 'field3' );
     }
 
 }
