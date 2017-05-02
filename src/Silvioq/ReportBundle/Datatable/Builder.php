@@ -131,9 +131,16 @@ class  Builder {
         return  $this;
     }
 
+    /**
+     * Add joineable table
+     *
+     * @param $field string   Field for joined table
+     * @param $alias string   Alias for table
+     * @return self
+     */
     public  function  join($field , $alias ){
         if( isset( $this->joins[$alias] ) )
-            throw  new  BuilderException( $alias . ' ya definido' );
+            throw  new  BuilderException( sprintf( '%s already defined', $alias ) );
         $this->resetQuery();
         $this->joins[$alias] = $field;
         return  $this;
