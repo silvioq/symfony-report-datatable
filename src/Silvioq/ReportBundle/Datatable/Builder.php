@@ -174,7 +174,17 @@ class  Builder {
     public  function   getJoins(){ return  $this->joins; }
     public  function   getColumns(){ return $this->cols; }
 
-    private function   resetQuery(){ $this->query = null; $this->result = null; $this->columnTypes = null; return $this; }
+    /**
+     * Reset cached query and results
+     */
+    private function   resetQuery(){
+        $this->query = null;
+        $this->result = null;
+        $this->columnTypes = null;
+        $this->count = null;
+        $this->filteredCount = null;
+        return $this;
+    }
 
     public  function   getDraw()
     {
