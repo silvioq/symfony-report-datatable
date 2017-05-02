@@ -104,13 +104,22 @@ class  Builder {
         return  $this;
     }
 
+    /**
+     * Adds column to query
+     * @param  string $col  Column name. It can be preceded by alias 
+     * @throws BuilderException if $col alredy added
+     * @return self
+     */
     public  function   add( $col ){
         if( is_array( $col ) ){
-            foreach( $col as $c ){
-                $this->cols[] = $c;
-            }
-        } else
-            $this->cols[] = $col;
+            foreach( $col as $c ) $this->add( $c );
+            return $this;
+        }
+
+        if( in_array( $col, $this->cols ) )
+            throw new BuilderException( sprintf( "Column %s is already added", $col ) );
+
+        $this->cols[] = $col;
         $this->resetQuery();
         return  $this;
     }
