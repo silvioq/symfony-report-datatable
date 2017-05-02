@@ -186,6 +186,11 @@ class  Builder {
         return $this;
     }
 
+    /**
+     * Useful for Datatable. Draw is the number of ejecution and must be
+     * returned in Json response
+     * @return  integer
+     */
     public  function   getDraw()
     {
         if( !$this->get ) return null;
