@@ -183,6 +183,9 @@ class  Builder {
         return $this->get['draw'];
     }
 
+    /**
+     * TODO: This function must be implemented in another class. They will receive alias, table, columns, joins and query (get).
+     */
     private  function   dataTableQuery($forCount = false){
         $alias = $this->getAlias();
         $table = $this->getRepo();
