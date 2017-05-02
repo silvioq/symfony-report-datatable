@@ -136,8 +136,8 @@ class  Builder {
     /**
      * Add joineable table
      *
-     * @param $field string   Field for joined table
-     * @param $alias string   Alias for table
+     * @param string $field   Field for joined table
+     * @param string $alias   Alias for table
      * @return self
      */
     public  function  join($field , $alias ){
@@ -150,8 +150,8 @@ class  Builder {
 
     /**
      * Filters an output field with a function
-     * @param $colName  string    Column name to apply filter
-     * @param $function callable  Function for filtering. The function receives
+     * @param string   $colName   Column name to apply filter
+     * @param callable $function  Callable  Function for filtering. The function receives
      *                            the entire row in raw format and must return
      *                            the value
      * @throws \InvalidArgumentException
