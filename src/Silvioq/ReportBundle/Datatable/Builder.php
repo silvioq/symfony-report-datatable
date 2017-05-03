@@ -396,8 +396,9 @@ class  Builder {
      * Returns ORM Query
      * @return \Doctrine\ORM\Query
      */
-    public  function  getQuery(){
-        if( $this->query === null ){
+    private function  getQuery()
+    {
+        if( $this->query === null ) {
             $this->query = $this->dataTableQuery();
         }
         return  $this->query;

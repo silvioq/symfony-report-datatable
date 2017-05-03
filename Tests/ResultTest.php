@@ -5,6 +5,7 @@ namespace  Silvioq\ReportBundle\Tests;
 use PHPUnit\Framework\TestCase;
 use Silvioq\ReportBundle\Datatable\Builder;
 use Doctrine\DBAL\Types\Type as ORMType;
+use Silvioq\ReportBundle\Tests\MockBuilder\ClassMetadataInfoMockBuilder;
 
 class  ResultTest  extends  TestCase
 {
@@ -67,7 +68,7 @@ class  ResultTest  extends  TestCase
     public  function  testGetQuery()
     {
         $emMock  = $this->createMock('\Doctrine\ORM\EntityManager',
-               array('getRepository', 'getClassMetadata', 'persist', 'flush'), array(), '', false);
+               array('getRepository', 'getClassMetadata'), array(), '', false);
         $repoMock = $this->createMock( '\Doctrine\ORM\EntityRepository', ["createQueryBuilder"], array(), '', false );
         $qbMock = $this->createMock( '\Doctrine\ORM\QueryBuilder', ["select", "getQuery", "andWhere"], array(), '', false );
         $queryMock = $this->createMock( '\Doctrine\ORM\AbstractQuery', ['getResult'], array(), '', false );
@@ -93,7 +94,19 @@ class  ResultTest  extends  TestCase
             ->method('getQuery')
             ->will( $this->returnValue($queryMock) )
             ;
-            
+
+        $result = [ 
+            [ 'field1' => 'one', 'field2' => 'two' ],
+            [ 'field1' => 'three', 'field2' => 'four' ],
+        ];
+
+        $expected = [ [ 'one', 'two' ], [ 'three', 'four' ] ];
+
+        $queryMock->expects($this->once())
+            ->method('getResult')
+            ->will($this->returnValue($result))
+            ;
+
         $dt = new Builder( $emMock, 
             [ "search" => [ "value" => "x" ] ] );
         $dt
@@ -102,7 +115,13 @@ class  ResultTest  extends  TestCase
             ->from( 'Test:Table', 'a' )
             ;
 
-        $this->assertInstanceOf( \Doctrine\ORM\AbstractQuery::class, $dt->getQuery() );
+        $metadata = new ClassMetadataInfoMockBuilder($this, $emMock, 'Test:Table' );
+        $metadata
+            ->addField( 'field1', ORMType::INTEGER )
+            ->addField( 'field2' )
+            ->build();
+
+        $this->assertEquals( $expected, $dt->getArray() );
         
     }
 
@@ -170,13 +189,29 @@ class  ResultTest  extends  TestCase
         
         $dt = new Builder( $emMock, $params );
 
+        $result = [ 
+            [ 'field1' => 'one', 'field2' => 'two' ],
+            [ 'field1' => 'three', 'field2' => 'four' ],
+        ];
+        $expected = [ [ 'one', 'two' ], [ 'three', 'four' ] ];
+        $queryMock->expects($this->once())
+            ->method('getResult')
+            ->will($this->returnValue($result))
+            ;
+
         $dt
             ->add( 'field1' )
             ->add( 'field2' )
             ->from( 'Test:Table', 'a' )
             ;
 
-        $this->assertInstanceOf( \Doctrine\ORM\AbstractQuery::class, $dt->getQuery() );
+        $metadata = new ClassMetadataInfoMockBuilder($this, $emMock, 'Test:Table' );
+        $metadata
+            ->addField( 'field1', ORMType::INTEGER)
+            ->addField( 'field2' )
+            ->build();
+
+        $this->assertEquals( $expected, $dt->getArray() );
         
     }
     
@@ -202,7 +237,6 @@ class  ResultTest  extends  TestCase
         $repoMock = $this->createMock( '\Doctrine\ORM\EntityRepository', ["createQueryBuilder"], array(), '', false );
         $qbMock = $this->createMock( '\Doctrine\ORM\QueryBuilder', ["select", "getQuery"], array(), '', false );
         $queryMock = $this->createMock( '\Doctrine\ORM\AbstractQuery', ['getResult'], array(), '', false );
-        $metadataMock = $this->createMock( '\Doctrine\ORM\Mapping\ClassMetadataInfo', ['getFieldNames','getTypeOfField'], array(), '', false );
 
         $result = [
             [ 'field1' => 1, 'field2' => 1, 'field3' => 2, ],
@@ -216,12 +250,6 @@ class  ResultTest  extends  TestCase
             ->will($this->returnValue($repoMock))
             ;
 
-        $emMock->expects($this->once())
-            ->method('getClassMetadata')
-            ->with($this->equalTo('Test:Table'))
-            ->will($this->returnValue($metadataMock))
-            ;
-        
         $repoMock->expects($this->once())
             ->method("createQueryBuilder")
             ->with($this->equalTo('a'))
@@ -243,15 +271,12 @@ class  ResultTest  extends  TestCase
             ->will( $this->returnValue($result))
             ;
 
-        $metadataMock->expects($this->atLeastOnce())
-            ->method('getTypeOfField')
-            ->will( $this->returnValue(ORMType::INTEGER))
-            ;
-
-        $metadataMock->expects($this->once())
-            ->method('getFieldNames')
-            ->will( $this->returnValue(['field1','field2','field3']))
-            ;
+        $metadata = new ClassMetadataInfoMockBuilder($this, $emMock, 'Test:Table' );
+        $metadata
+            ->addField( 'field1' )
+            ->addField( 'field2' )
+            ->addField( 'field3' )
+            ->build();
 
         $dt = new Builder( $emMock, [ "search" => [ "value" => "x" ] ] );
         $dt
