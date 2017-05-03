@@ -13,6 +13,9 @@
         "psr-4": { "Silvioq\\ReportBundle\\": "./src/Silvioq/ReportBundle" },
         "exclude-from-classmap": [ "/Tests/" ]
     },
+    "autoload-dev": {
+        "psr-4": { "Silvioq\\ReportBundle\\Tests\\": "./Tests" }
+    },
     "suggest": {
         "beberlei/DoctrineExtensions": "For DATE_FORMAT functions"
     },
