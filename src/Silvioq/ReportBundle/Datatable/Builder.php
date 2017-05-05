@@ -170,7 +170,14 @@ class  Builder {
                 E_USER_DEPRECATED );
         return $this->condition( $condition );
     }
-
+    
+    /**
+     * Adds hidden column to query. The query will include the hiddens columns,
+     * but this is not returned after execution
+     *
+     * @param string $col
+     * @return self
+     */
     public  function   addHidden( $col ){
         $this->add( $col );
         $this->colsH[] = self::normalizeColName( $col );
