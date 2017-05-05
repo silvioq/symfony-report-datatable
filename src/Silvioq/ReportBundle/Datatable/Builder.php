@@ -20,16 +20,16 @@ class  Builder {
     private  $joins;
 
     /**
-     * Global wheres for query
+     * Global conditions for query
      * @var array
      */
-    private  $wheres;
+    private  $globalConditions;
 
     /**
-     * For filtered count wheres for query
+     * For search conditions for query
      * @var array
      */
-    private  $wheresOnFilter;
+    private  $searchConditions;
 
     /**
      * @var array
@@ -65,8 +65,8 @@ class  Builder {
         $this->cols  = array();
         $this->colsH = array();
         $this->filter= array();
-        $this->wheres= array();
-        $this->wheresOnFilter = array();
+        $this->globalConditions = array();
+        $this->searchConditions = array();
         $this->get   = $get;
         $this->_em   = $em;
 
@@ -130,7 +130,8 @@ class  Builder {
     }
 
     /**
-     * Add a condition to global wheres
+     * Add a condition to global conditions. Affects all return set elements, like count(),
+     * filteredCount() and getAll() functions.
      *
      * @param string|callable $condition  Condition to add to query builder. If it's callable,
      *                                    $condition is called with QueryBuilder parameter
@@ -140,23 +141,34 @@ class  Builder {
         if( !is_callable( $condition ) && !is_string( $condition ) )
             throw new \InvalidArgumentException( 'Condition must be callable or simple string' );
 
-        $this->wheres[] = $condition;
+        $this->globalConditions[] = $condition;
         return $this;
     }
 
     /**
-     * Add a condition to filtered wheres
+     * Add a condition to filtered wheres. Affects filteredCount() and dataset returned on
+     * getAll()
      *
      * @param string|callable $condition  Condition to add to query builder. If it's callable,
      *                                    $condition is called with QueryBuilder parameter
      */
-    public  function  whereOnFiltered( $condition )
+    public  function  condition( $condition )
     {
         if( !is_callable( $condition ) && !is_string( $condition ) )
             throw new \InvalidArgumentException( 'Condition must be callable or simple string' );
 
-        $this->wheresOnFilter[] = $condition;
+        $this->searchConditions[] = $condition;
         return $this;
+    }
+    
+    /**
+     * @deprecated
+     */
+    public function whereOnFiltered( $condition )
+    {
+        @trigger_error( 'whereOnFiltered function is deprecated and will be removed soon. Please use condition function instead',
+                E_USER_DEPRECATED );
+        return $this->condition( $condition );
     }
 
     public  function   addHidden( $col ){
@@ -363,14 +375,14 @@ class  Builder {
         }
 
         /**
-         * Agrego for filtering wheres
+         * Adds search conditions
          */
-        $this->addWheresToCB( $cb, $this->wheresOnFilter );
+        $this->addWheresToCB( $cb, $this->searchConditions );
 
         /**
-         * Agrego where.
+         * Adds global conditions
          */
-        $this->addWheresToCB( $cb, $this->wheres );
+        $this->addWheresToCB( $cb, $this->globalConditions );
        
         /*
          * SQL queries
@@ -552,11 +564,11 @@ class  Builder {
                 ->createQueryBuilder($alias)
                 ->select( 'COUNT(' . $alias . ' )' )
                 ->setMaxResults(1);
-            $this->addWheresToCB( $cb, $this->wheres );
+            $this->addWheresToCB( $cb, $this->globalConditions );
 
-            // dado que al agregar "wheres" al QueryBuilder puede haber
+            // dado que al agregar "globalConditions" al QueryBuilder puede haber
             // referecias a joins externos, agrego los joins que hubiera
-            if( count( $this->wheres ) > 0 )
+            if( count( $this->globalConditions ) > 0 )
             {
                 foreach( $this->getJoins() as $a => $j ){
                     $cb->leftJoin( $j, $a);
@@ -570,11 +582,11 @@ class  Builder {
     }
 
     /**
-     * Adds where conditions to QueryBuilder
+     * Adds global conditions to QueryBuilder
      */
-    private  function  addWheresToCB( QueryBuilder $cb, array $wheres )
+    private  function  addWheresToCB( QueryBuilder $cb, array $conditions )
     {
-        foreach( $wheres as $customWhere )
+        foreach( $conditions as $customWhere )
         {
             if( is_callable( $customWhere ) )
             {

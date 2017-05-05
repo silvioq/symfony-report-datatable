@@ -70,7 +70,7 @@ class  WheresTest  extends  TestCase
 
     /**
      * @covers Builder::where
-     * @covers Builder::whereOnFiltered
+     * @covers Builder::condition
      * @covers Builder::addWheresToCB
      * @dataProvider whereFunctions
      */
@@ -137,7 +137,7 @@ class  WheresTest  extends  TestCase
 
     /**
      * @covers Builder::where
-     * @covers Builder::whereOnFiltered
+     * @covers Builder::condition
      */
     function testAndWhereCalledFromCount()
     {     
@@ -192,7 +192,7 @@ class  WheresTest  extends  TestCase
             ->add( 'field2' )
             ->from( 'Test:Table', 'a' )
             ->where( 'a.field1 = 1')
-            ->whereOnFiltered( 'a.field2 = 2' )
+            ->condition( 'a.field2 = 2' )
             ;
 
         $this->assertEquals( 3, $dt->getCount() );
@@ -202,7 +202,7 @@ class  WheresTest  extends  TestCase
 
     /**
      * @covers Builder::where
-     * @covers Builder::whereOnFiltered
+     * @covers Builder::condition
      */
     function testAndWhereCalledFromFilteredCount()
     {     
@@ -261,7 +261,7 @@ class  WheresTest  extends  TestCase
             ->add( 'field2' )
             ->from( 'Test:Table', 'a' )
             ->where( 'a.field1 = 1')
-            ->whereOnFiltered( 'a.field2 = 2' )
+            ->condition( 'a.field2 = 2' )
             ;
 
         $this->assertEquals( 3, $dt->getFilteredCount() );
@@ -272,7 +272,7 @@ class  WheresTest  extends  TestCase
 
     public function whereFunctions()
     {
-        return[ ["where"], ["whereOnFiltered"] ];
+        return[ ["where"], ["condition"] ];
     }
 
 
