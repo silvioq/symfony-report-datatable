@@ -37,6 +37,7 @@ class  ResultTest  extends  TestCase
             
         $qbMock->expects($this->once())
             ->method('select')
+            ->with($this->equalTo('a.field1, a.field2'))
             ->will($this->returnSelf() )
             ;
             
