@@ -18,7 +18,6 @@ class ScalarizeTest extends TestCase
 
     public function testDateTime()
     {
-
         $date = new \DateTime();
         $date->setDate( 1945,10,17 );
         $date->setTime( 0,0, 0 );
