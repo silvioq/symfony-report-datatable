@@ -2,3 +2,7 @@ services:
     silvioq.report.datatable:
         class: Silvioq\ReportBundle\Service\DatatableFactory
         arguments: ["@doctrine.orm.entity_manager", "@request_stack"]
+        
+    silvioq.report.table:
+        class: Silvioq\ReportBundle\Service\TableFactory
+        arguments: ["@annotation_reader"]
