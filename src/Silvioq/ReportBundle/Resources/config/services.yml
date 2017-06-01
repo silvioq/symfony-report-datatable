@@ -5,4 +5,4 @@ services:
         
     silvioq.report.table:
         class: Silvioq\ReportBundle\Service\TableFactory
-        arguments: ["@annotation_reader"]
+        arguments: ["@doctrine.orm.entity_manager", "@annotation_reader"]
