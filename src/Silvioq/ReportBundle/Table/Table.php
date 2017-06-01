@@ -2,6 +2,7 @@
 
 namespace   Silvioq\ReportBundle\Table;
 
+use Silvioq\ReportBundle\Util\Scalarize;
 
 /**
  * @author silvioq
@@ -43,9 +44,21 @@ class Table
     }
     
     /**
+     * Return table row with scalar values
      * @return array
      */
     public function getRow($entity)
+    {
+        $data = $this->getRawData($entity);
+        foreach( $data as &$row ) $row = Scalarize::toScalar($row);
+        return $data;
+    }
+
+    /**
+     * Return table row
+     * @return array
+     */
+    public function getRawData($entity)
     {
         if( !count($this->columns) )
             throw new \LogicException("Generator not initialized");
@@ -62,7 +75,6 @@ class Table
                 }
                 else return $entity->$getter();
             }, $this->columns );
-        
     }
 
 }
