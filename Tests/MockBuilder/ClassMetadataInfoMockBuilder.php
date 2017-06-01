@@ -29,6 +29,11 @@ class ClassMetadataInfoMockBuilder
      */
     private $fields = [];
 
+    /**
+     * @var array
+     */
+    private $assoc = [];
+
     public function __construct( TestCase $test, EntityManagerInterface $emMock, $repoName )
     {
         $this->test = $test;
@@ -42,10 +47,15 @@ class ClassMetadataInfoMockBuilder
         return $this;
     }
 
+    public function addManyToOne( $fieldName )
+    {
+        $this->assoc[$fieldName] = [ 'type' => \Doctrine\ORM\Mapping\ClassMetadataInfo::MANY_TO_ONE ];
+    }
+
     /**
      * @return ClassMetadataInfo
      */
-    public function build()
+    public function build($expectTypes=true)
     {
         /* @var ClassMetadataInfo */
         $mock = $this->test
@@ -68,23 +78,32 @@ class ClassMetadataInfoMockBuilder
             ->will($this->test->returnValue($names))
             ;
 
+        $mock->expects($this->test->any())
+            ->method('getAssociationMappings')
+            ->will($this->test->returnValue($this->assoc))
+            ;
+
         $this->emMock->expects($this->test->atLeastOnce())
             ->method('getClassMetadata')
             ->with($this->test->equalTo($this->repoName))
             ->will($this->test->returnValue($mock))
             ;
 
-        $method = $mock->expects($this->test->exactly(count($with)))
-            ->method('getTypeOfField')
-            ;
-        call_user_func_array([$method,'withConsecutive'],$with)
-            ->will($this->test->returnCallback(function($arg) use($fields){
-                    if( !isset( $fields[$arg] ) )
-                        throw new \LogicException( 'Error on consecutive calls' );
+        if( $expectTypes )
+        {
+            $method = $mock->expects($this->test->exactly(count($with)))
+                ->method('getTypeOfField')
+                ;
 
-                    return $fields[$arg];
-                } ) )
-            ;
+            call_user_func_array([$method,'withConsecutive'],$with)
+                ->will($this->test->returnCallback(function($arg) use($fields){
+                        if( !isset( $fields[$arg] ) )
+                            throw new \LogicException( 'Error on consecutive calls' );
+
+                        return $fields[$arg];
+                    } ) )
+                ;
+        }
 
         return $mock;
     }
