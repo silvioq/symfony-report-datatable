@@ -23,7 +23,7 @@ class ClassMetadataInfoMockBuilder
      * @var string
      */
     private $repoName;
-    
+
     /**
      * @var array
      */
@@ -47,13 +47,12 @@ class ClassMetadataInfoMockBuilder
      */
     public function build()
     {
-
         /* @var ClassMetadataInfo */
         $mock = $this->test
                 ->getMockBuilder(ClassMetadataInfo::class)
                 ->disableOriginalConstructor()
                 ->getMock();
-        
+
         $fields = [];
         $with = [];
         $names = [];
@@ -63,7 +62,7 @@ class ClassMetadataInfoMockBuilder
             array_push( $names, $f['name'] );
             $fields[$f['name']] = $f['type'];
         }
-        
+
         $mock->expects($this->test->once())
             ->method('getFieldNames')
             ->will($this->test->returnValue($names))
@@ -86,7 +85,6 @@ class ClassMetadataInfoMockBuilder
                     return $fields[$arg];
                 } ) )
             ;
-           
 
         return $mock;
     }
