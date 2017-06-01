@@ -30,7 +30,20 @@ class TableFactory
         new TableColumn();
 
         $columns = [];
+        $count = 0;
 
+        foreach( $class->getProperties() as $property )
+        {
+            $annotation = $this->reader->getPropertyAnnotation($property, TableColumn::class);
+            if( null === $annotation ) continue;
+            
+            if( null === $annotation->name )
+                $annotation->name = $property->getName();
+
+            $annotation->key = ++$count;
+            array_push( $columns, $annotation );
+        }
+        
         foreach( $class->getMethods() as $method )
         {
             $annotation = $this->reader->getMethodAnnotation($method, TableColumn::class);
@@ -41,27 +54,19 @@ class TableFactory
                 $annotation->name = preg_replace( '/^get/', '', $method->getName() );
                 $annotation->name = strtolower( substr( $annotation->name, 0, 1 ) ) . substr( $annotation->name, 1 );
             }
-            
+
             if( null === $annotation->getter )
                 $annotation->getter = $method->getName();
-            
-            array_push( $columns, $annotation );
-        }
 
-        foreach( $class->getProperties() as $property )
-        {
-            $annotation = $this->reader->getPropertyAnnotation($property, TableColumn::class);
-            if( null === $annotation ) continue;
-            
-            if( null === $annotation->name )
-                $annotation->name = $property->getName();
-
+            $annotation->key = ++$count;
             array_push( $columns, $annotation );
         }
 
         usort( $columns, function($a,$b){
             if( $a->order < $b->order ) return -1;
             if( $a->order > $b->order ) return 1;
+            if( $a->key < $b->key ) return -1;
+            if( $a->key > $b->key ) return 1;
             return 0;
         });
 
