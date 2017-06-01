@@ -3,7 +3,7 @@
 namespace  Silvioq\ReportBundle\Service;
 
 use Doctrine\Common\Annotations\Reader;
-use Silvioq\ReportBundle\Service\Annotation\TableColumn;
+use Silvioq\ReportBundle\Annotation\TableColumn;
 use Silvioq\ReportBundle\Table\Table;
 
 

@@ -1,6 +1,7 @@
 <?php
 
-namespace Silvioq\ReportBundle\Service\Annotation;
+namespace Silvioq\ReportBundle\Annotation;
+
 use Doctrine\Common\Annotations\Annotation;
 
 /**

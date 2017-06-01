@@ -3,7 +3,7 @@
 namespace  Silvioq\ReportBundle\Tests\Table\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
-use Silvioq\ReportBundle\Service\Annotation\TableColumn;
+use Silvioq\ReportBundle\Annotation\TableColumn;
 
 /**
  * @ORM\Entity
