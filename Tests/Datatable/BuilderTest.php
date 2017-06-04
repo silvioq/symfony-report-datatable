@@ -1,6 +1,6 @@
 <?php
 
-namespace  Silvioq\ReportBundle\Tests;
+namespace  Silvioq\ReportBundle\Tests\Datatable;
 
 use PHPUnit\Framework\TestCase;
 use Doctrine\ORM\EntityManager;
