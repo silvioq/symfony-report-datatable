@@ -106,6 +106,7 @@ class  WheresTest  extends  TestCase
         
         $qbMock->expects($this->once())
             ->method('andWhere')
+            ->with( "1 = 1" )
             ;
             
         $queryMock->expects($this->once())
@@ -127,6 +128,78 @@ class  WheresTest  extends  TestCase
             ->$functionName( function( $qb) use( &$called, $_self ){
                 $called ++;
                 $_self->assertInstanceOf( QueryBuilder::class, $qb );
+                return "1 = 1";
+            } )
+            ;
+
+        $this->assertEquals( $dt->getArray(), [] );
+        $this->assertEquals( 1, $called );
+    }
+
+    /**
+     * @covers Builder::where
+     * @covers Builder::condition
+     * @covers Builder::addWheresToCB
+     * @dataProvider whereFunctions
+     */
+    function testAndWhereWithCallableWithoutResult($functionName)
+    {     
+        $emMock  = $this->createMock('\Doctrine\ORM\EntityManager',
+               array('getRepository', 'getClassMetadata', 'persist', 'flush'), array(), '', false);
+        $repoMock = $this->createMock( '\Doctrine\ORM\EntityRepository', ["createQueryBuilder"], array(), '', false );
+        $qbMock = $this->createMock( QueryBuilder::class, ["select", "getQuery", "andWhere", "leftJoin"], array(), '', false );
+        $queryMock = $this->createMock( '\Doctrine\ORM\AbstractQuery', ['getResult'], array(), '', false );
+        
+        $emMock->expects($this->once())
+            ->method('getRepository')
+            ->with($this->equalTo('Test:Table'))
+            ->will($this->returnValue($repoMock))
+            ;
+
+        $repoMock->expects($this->once())
+            ->method("createQueryBuilder")
+            ->with($this->equalTo('a'))
+            ->will($this->returnValue( $qbMock ) )
+            ;
+            
+        $qbMock->expects($this->once())
+            ->method('select')
+            ->will($this->returnSelf() )
+            ;
+            
+        $qbMock->expects($this->once())
+            ->method('getQuery')
+            ->will( $this->returnValue($queryMock) )
+            ;
+        
+        $qbMock->expects($this->never())
+            ->method('andWhere')
+            ;
+
+        $qbMock->expects($this->once())
+            ->method('leftJoin')
+            ;
+            
+        $queryMock->expects($this->once())
+            ->method('getResult')
+            ->will( $this->returnValue([]))
+            ;
+            
+        $dt = new Builder( $emMock, 
+            [ "search" => [ "value" => "x" ] ] );
+            
+            
+        $called = 0;
+        $_self = $this;
+        
+        $dt
+            ->add( 'field1' )
+            ->add( 'field2' )
+            ->from( 'Test:Table', 'a' )
+            ->$functionName( function( $qb) use( &$called, $_self ){
+                $called ++;
+                $_self->assertInstanceOf( QueryBuilder::class, $qb );
+                $qb->leftJoin("Test:Table2", "b" );
             } )
             ;
 

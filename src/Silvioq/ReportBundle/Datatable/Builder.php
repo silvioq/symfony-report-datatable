@@ -598,7 +598,8 @@ class  Builder {
             if( is_callable( $customWhere ) )
             {
                 $data = $customWhere( $cb );
-                $cb->andWhere( $data );
+                if( null !== $data )
+                    $cb->andWhere( $data );
             }
             else
             {
