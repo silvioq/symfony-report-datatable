@@ -91,6 +91,7 @@ class  Builder {
                     break;
 
                 case 'pdo_oracle':
+                case 'oci8':
                     $em->getConfiguration()->addCustomDatetimeFunction( 'DATE_FORMAT', 
                             \DoctrineExtensions\Query\Postgresql\DateFormat::class );
                     break;
