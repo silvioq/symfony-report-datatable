@@ -2,7 +2,9 @@ services:
     silvioq.report.datatable:
         class: Silvioq\ReportBundle\Service\DatatableFactory
         arguments: ["@doctrine.orm.entity_manager", "@request_stack"]
+        public: true
         
     silvioq.report.table:
         class: Silvioq\ReportBundle\Service\TableFactory
         arguments: ["@doctrine.orm.entity_manager", "@annotation_reader"]
+        public: true
