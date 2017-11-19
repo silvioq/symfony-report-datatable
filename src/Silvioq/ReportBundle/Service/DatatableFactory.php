@@ -9,20 +9,26 @@ use Symfony\Component\HttpFoundation\RequestStack;
 
 class DatatableFactory
 {
-
+    /** @var EntityManagerInterface */
     private   $em;
-    private   $request_stack;
 
-    public  function  __construct( EntityManagerInterface $em, RequestStack $request_stack )
+    /** @var RequestStack */
+    private   $requestStack;
+
+    public  function  __construct( EntityManagerInterface $em, RequestStack $requestStack )
     {
         $this->em = $em;
-        $this->request_stack = $request_stack;
+        $this->requestStack = $requestStack;
     }
 
-    public  function  buildDatatable( )
+    /**
+     * Returns a configured intance of \Silvioq\ReportBundle\Datatable\Builder
+     *
+     * @return Builder
+     */
+    public  function  buildDatatable( ):Builder
     {
-        $currentRequest = $this->request_stack->getCurrentRequest( );
-
+        $currentRequest = $this->requestStack->getCurrentRequest( );
         return  new  Builder( $this->em, $currentRequest->query->all() + $currentRequest->request->all());
     }
 

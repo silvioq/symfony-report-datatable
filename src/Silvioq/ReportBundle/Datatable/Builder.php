@@ -74,6 +74,8 @@ class  Builder {
         $this->count = null;
         $this->columnTypes = null;
         $this->filteredCount = null;
+
+        /** @var boolean */
         $this->dateFormatFunc = class_exists( "DoctrineExtensions\Query\Postgresql\DateFormat" );
 
         if( $this->dateFormatFunc && $em->getConfiguration()->getCustomDatetimeFunction( 'DATE_FORMAT' ) === null )
@@ -102,8 +104,14 @@ class  Builder {
         }
     }
 
-
-    public  function   from( $repo, $alias ){
+    /**
+     * Set FROM table for query
+     *
+     * @param string $repo Repo name
+     * @param string $alias
+     * @return self
+     */
+    public  function   from( $repo, $alias ):self{
         $this->resetQuery();
         $this->repo = $repo;
         $this->alias = $alias;
