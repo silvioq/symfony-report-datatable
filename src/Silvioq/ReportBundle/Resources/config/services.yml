@@ -1,4 +1,9 @@
 services:
+    silvioq.report.datatable.builder:
+        class: Silvioq\ReportBundle\Datatable\Builder
+        factory: [ "@silvioq.report.datatable", "build" ]
+        public: true
+
     silvioq.report.datatable:
         class: Silvioq\ReportBundle\Service\DatatableFactory
         arguments: ["@doctrine.orm.entity_manager", "@request_stack"]

@@ -5,6 +5,8 @@ namespace  Silvioq\ReportBundle\Tests;
 use Silvioq\ReportBundle\DependencyInjection\SilvioqReportExtension;
 use Matthias\SymfonyDependencyInjectionTest\PhpUnit\AbstractExtensionTestCase;
 use Silvioq\ReportBundle\Service\TableFactory;
+use Silvioq\ReportBundle\Service\DatatableFactory;
+use Silvioq\ReportBundle\Datatable\Builder;
 
 /**
  * Clase para chequear la inicialización del servicio en symfony
@@ -23,7 +25,8 @@ class  DependencyTest extends AbstractExtensionTestCase
     public  function  testDependencies( )
     {
         $this->load();
-        $this->assertContainerBuilderHasService( 'silvioq.report.datatable' );
+        $this->assertContainerBuilderHasService( 'silvioq.report.datatable', DatatableFactory::class );
+        $this->assertContainerBuilderHasService( 'silvioq.report.datatable.builder', Builder::class );
         $this->assertContainerBuilderHasService( 'silvioq.report.table', TableFactory::class );
     }
 
