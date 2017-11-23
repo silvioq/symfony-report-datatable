@@ -358,6 +358,11 @@ class  SearchTest  extends  TestCase
     }
 
 
+    public  function  testSearchBetweenDate()
+    {
+        $this->markTestSkipped();
+    }
+
     public  function  testSearchBetweenStrings()
     {
         $emMock  = $this->createMock('\Doctrine\ORM\EntityManager',
