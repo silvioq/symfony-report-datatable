@@ -64,7 +64,7 @@ class Table
             throw new \LogicException("Generator not initialized");
 
         if( !($entity instanceof $this->entityClass ) )
-            throw new \InvalidArgumentException(sprintf( "Argument 1 must be an instance of %s", $entityClass ) );
+            throw new \InvalidArgumentException(sprintf( "Argument 1 must be an instance of %s", $this->entityClass ) );
         
         
         return array_map( function(Column $col)use($entity){
