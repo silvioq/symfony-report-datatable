@@ -312,6 +312,7 @@ class  Builder {
     /**
      * Useful for Datatable. Draw is the number of ejecution and must be
      * returned in Json response
+     *
      * @return  integer|null
      */
     public  function   getDraw()
@@ -323,9 +324,10 @@ class  Builder {
 
     /**
      * TODO: This function must be implemented in another class. They will receive alias, table, columns, joins and query (get).
-     * @return \Doctrine\ORM\Query
+     * @return \Doctrine\ORM\AbstractQuery
      */
-    private  function   dataTableQuery($forCount = false){
+    private  function   dataTableQuery($forCount = false):\Doctrine\ORM\AbstractQuery
+    {
         $alias = $this->getAlias();
         $get   = $this->get;
         $cols  = $this->getColumns();
@@ -464,9 +466,12 @@ class  Builder {
     }
 
     /**
+     * Get record counts with filtering
+     *
      * @return int
      */
-    public  function  getFilteredCount():int{
+    public  function  getFilteredCount():int
+    {
         if( null === $this->filteredCount ){
             $query = $this->dataTableQuery(true);
             $aResultTotal = $query->getResult();
@@ -485,9 +490,9 @@ class  Builder {
 
     /**
      * Returns ORM Query
-     * @return \Doctrine\ORM\Query
+     * @return \Doctrine\ORM\AbstractQuery
      */
-    private function  getQuery()
+    private function  getQuery():\Doctrine\ORM\AbstractQuery
     {
         if( null === $this->query ) {
             $this->query = $this->dataTableQuery();
