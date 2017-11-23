@@ -342,10 +342,12 @@ class  Builder {
             $select = str_replace(" , ", " ", implode(", ", $aColumns));
         }
 
+        /** @var QueryBuilder */
         $cb = $this->getRepository()
                 ->createQueryBuilder($alias)
                 ->select($select)
                 ;
+
         foreach( $joins as $a => $j ){
             $cb->leftJoin( $j, $a);
         }
@@ -520,7 +522,7 @@ class  Builder {
      */
     private  $parameterCount = 0;
     private  $parameterList  = array();
-    private function  createParameter( $str, QueryBuilder $cb )
+    private function  createParameter( $str, QueryBuilder $cb ):string
     {
         $hash = md5( is_array($str) ? join(',', $str) : $str );
         if( isset( $this->parameterList[$hash]) )
@@ -540,7 +542,7 @@ class  Builder {
     /**
      * Retorna una expresión de filtro.
      */
-    private function  getWhereFor( $columnName, $searchStr, $cb )
+    private function  getWhereFor( string $columnName, string  $searchStr, QueryBuilder $cb ):string
     {
         $ct = $this->getColumnType( $columnName );
         if( $ct === ORMType::STRING || $ct === ORMType::TEXT )
@@ -563,7 +565,9 @@ class  Builder {
             $param = $this->createParameter( "%" . strtolower( $searchStr ). "%", $cb );
             return  $cb->expr()->like( $columnName, $param );
         }
-        return null;
+
+        throw new \LogicException( sprintf( "Can't generate where expression for column %s, search string %s",
+                    $columnName, $searchStr ) );
     }
 
     /**
