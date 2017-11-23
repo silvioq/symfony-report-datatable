@@ -466,24 +466,10 @@ class  Builder {
     }
 
     /**
-     * Get record counts with filtering
-     *
-     * @return int
-     */
-    public  function  getFilteredCount():int
-    {
-        if( null === $this->filteredCount ){
-            $query = $this->dataTableQuery(true);
-            $aResultTotal = $query->getResult();
-            $this->filteredCount = intval($aResultTotal[0][1]);
-        }
-        return  $this->filteredCount;
-    }
-
-    /**
      * @var \Doctrine\ORM\EntityRepository
      */
-    private function getRepository():\Doctrine\ORM\EntityRepository {
+    private function getRepository():\Doctrine\ORM\EntityRepository
+    {
         return $this->_em
             ->getRepository($this->getRepo());
     }
@@ -500,7 +486,7 @@ class  Builder {
         return  $this->query;
     }
 
-    private function  getColumnTypes( )
+    private function  getColumnTypes( ):array
     {
         if( $this->columnTypes !== null ) return $this->columnTypes;
         $md = $this->_em->getClassMetadata( $this->getRepo() );
@@ -525,7 +511,7 @@ class  Builder {
         return  $this->columnTypes = $ret;
     }
 
-    private function  getColumnType( $column )
+    private function  getColumnType( $column ):string
     {
         if( strpos( $column, '.' ) === false ) return $this->getColumnType( $this->getAlias() . '.' . $column );
         $ct = $this->getColumnTypes();
@@ -590,7 +576,8 @@ class  Builder {
      *
      * @return \Generator
      */
-    public  function  getAll(){
+    public  function  getAll()
+    {
         $cols   = $this->getColumns();
         $result = array();
         foreach( $this->getResult() as $row ) {
@@ -625,7 +612,8 @@ class  Builder {
      *
      * @return array
      */
-    public  function  getArray(){
+    public  function  getArray():array
+    {
         $ret = [];
         foreach( $this->getAll() as $v ){
             $ret[] = array_values( $v );
@@ -634,16 +622,20 @@ class  Builder {
     }
 
 
-    static  function   normalizeColName($colName){
+    static  function   normalizeColName($colName):string
+    {
         return  str_replace( '.', '_', $colName );
     }
 
 
 
     /**
+     * Get all fields from table (counting only global conditions)
+     *
      * @return int
      */
-    public function getCount(){
+    public function getCount():int
+    {
         if( $this->count === null ){
             $alias = $this->getAlias();
             $cb = $this->getRepository()
@@ -665,6 +657,21 @@ class  Builder {
             $this->count = intval($aResultTotal[0][1]);
         }
         return  $this->count;
+    }
+
+    /**
+     * Get record counts with filtering, applying filters and global conditions
+     *
+     * @return int
+     */
+    public  function  getFilteredCount():int
+    {
+        if( null === $this->filteredCount ){
+            $query = $this->dataTableQuery(true);
+            $aResultTotal = $query->getResult();
+            $this->filteredCount = intval($aResultTotal[0][1]);
+        }
+        return  $this->filteredCount;
     }
 
     /**
@@ -692,7 +699,8 @@ class  Builder {
      *
      * @return array
      */
-    private  function  getResult(){
+    private  function  getResult():array
+    {
         if( $this->result === null ){
             $this->result = $this->getQuery()->getResult();
         }
