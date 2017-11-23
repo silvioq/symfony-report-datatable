@@ -37,6 +37,22 @@ class TableFactoryTest extends TestCase
         $this->assertEquals( [ 'Maradona', 42 ], $table->getRow($entity) );
     }
 
+    /**
+     * @expectedException \Symfony\Component\OptionsResolver\Exception\UndefinedOptionsException
+     * @expectedExceptionMessage The option "key" does not exist. Defined options are: "getter", "label", "name", "order".
+     */
+    public function testReaderWithInvalidAnnotation()
+    {
+        $emMock = $this
+            ->getMockBuilder(EntityManagerInterface::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $factory = new TableFactory($emMock, new AnnotationReader());
+        $table = $factory->build(Entity\EntityWithInvalidAnnotation::class);
+        $this->assertInstanceOf( \Silvioq\ReportBundle\Table\Table::class, $table );
+    }
+
     public function testEntity()
     {
         $emMock = $this
@@ -58,4 +74,5 @@ class TableFactoryTest extends TestCase
 
         $table = $factory->build(get_class($entityMock));
     }
+
 }
