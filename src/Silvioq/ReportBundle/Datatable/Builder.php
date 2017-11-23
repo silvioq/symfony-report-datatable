@@ -17,6 +17,8 @@ class  Builder {
 
     private  $alias;
     private  $repo;
+
+    /** @var array */
     private  $joins;
 
     /**
@@ -284,7 +286,15 @@ class  Builder {
         return  $this->alias;
     }
 
-    public  function   getJoins(){ return  $this->joins; }
+    /**
+     * Get all join declarations
+     *
+     * @return array
+     */
+    public  function   getJoins():array{
+        return  $this->joins;
+    }
+
     public  function   getColumns(){ return $this->cols; }
 
     /**
