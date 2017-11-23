@@ -360,7 +360,94 @@ class  SearchTest  extends  TestCase
 
     public  function  testSearchBetweenDate()
     {
-        $this->markTestSkipped();
+        $emMock  = $this->createMock('\Doctrine\ORM\EntityManager',
+               array('getRepository', 'getClassMetadata'), array(), '', false);
+        $repoMock = $this->createMock( '\Doctrine\ORM\EntityRepository', ["createQueryBuilder"], array(), '', false );
+        $qbMock = $this->createMock( '\Doctrine\ORM\QueryBuilder', ["select", "getQuery", "andWhere",'expr'], array(), '', false );
+        $queryMock = $this->createMock( '\Doctrine\ORM\AbstractQuery', ['getResult'], array(), '', false );
+        $metadataMock = $this->createMock( '\Doctrine\ORM\Mapping\ClassMetadataInfo', ['getFieldNames','getTypeOfField'], array(), '', false );
+
+        $emMock->expects($this->once())
+            ->method('getRepository')
+            ->with($this->equalTo('Test:Table'))
+            ->will($this->returnValue($repoMock))
+            ;
+
+        $metadataMock->expects($this->once())
+            ->method('getFieldNames')
+            ->will( $this->returnValue(['field1','field2']))
+            ;
+
+        $emMock->expects($this->once())
+            ->method('getClassMetadata')
+            ->with($this->equalTo('Test:Table'))
+            ->will($this->returnValue($metadataMock))
+            ;
+
+        $metadataMock->expects($this->at(1))
+            ->method('getTypeOfField')
+            ->with( $this->equalTo('field1'))
+            ->will( $this->returnValue(ORMType::DATETIME))
+            ;
+
+        $repoMock->expects($this->once())
+            ->method("createQueryBuilder")
+            ->with($this->equalTo('a'))
+            ->will($this->returnValue( $qbMock ) )
+            ;
+
+        $qbMock->expects($this->once())
+            ->method('select')
+            ->with($this->equalTo('a.field1, a.field2'))
+            ->will($this->returnSelf() )
+            ;
+
+        $qbMock->expects($this->exactly(2))
+            ->method('setParameter')
+            ->withConsecutive( ['ppp1', '1900-01-01'], ['ppp2','2012-01-01'] )
+            ->will($this->returnSelf())
+            ;
+
+        $e = new Expr();
+        $comp1 = $e->between('a.field1', ':ppp1', ':ppp2');
+        $qbMock->expects($this->once())
+            ->method('andWhere')
+            ->with($this->equalTo($comp1))
+            ->will($this->returnSelf() )
+            ;
+
+        $qbMock->expects($this->once())
+            ->method('getQuery')
+            ->will( $this->returnValue($queryMock) )
+            ;
+
+        $qbMock
+            ->method('expr')
+            ->will($this->returnValue(new Expr()))
+            ;
+
+        $queryMock->expects($this->once())
+            ->method('getResult')
+            ->will( $this->returnValue([]))
+            ;
+
+        $dt = new Builder( $emMock,
+            [
+              "search" => [ "value" => "" ],
+              "columns" => [
+                   [ 'searchable' => true, 'search' => [ 'value' => 'between 1900-01-01 and 2012-01-01' ] ],
+                   [ 'searchable' => true ],
+                ],
+            ] );
+
+        $dt
+            ->add( 'field1' )
+            ->add( 'field2' )
+            ->from( 'Test:Table', 'a' )
+            ;
+
+        $this->assertEquals( $dt->getArray(), [] );
+
     }
 
     public  function  testSearchBetweenStrings()
