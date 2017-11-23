@@ -326,7 +326,7 @@ class  WheresTest  extends  TestCase
             ->method('getResult')
             ->will( $this->returnValue([[0,3]]))
             ;
-            
+
         $dt = new Builder( $emMock, 
             [ "search" => [ "value" => "x" ] ] );
         $dt
