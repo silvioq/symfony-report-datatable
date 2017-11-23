@@ -37,10 +37,17 @@ class  Builder {
     private  $get;
 
     /**
-     * Lista de columnas
+     * Column list
+     *
      * @var array
      */
     private  $cols;
+
+    /**
+     * Hidden column list
+     *
+     * @var array
+     */
     private  $colsH;
 
     /**
@@ -49,15 +56,35 @@ class  Builder {
     private  $_em;
 
     /**
-     * @var array
+     * @var array|null
      */
-    private  $filter;
-    private  $result;
-    private  $columnTypes;
+    private $filter;
 
+    /** @var array|null */
+    private $result;
+
+    /**
+     * @var array|null
+     */
+    private $columnTypes = null;
+
+    /**
+     * Generated query
+     *
+     * @var \Doctrine\ORM\Query|null
+     */
     private  $query;
+
+    /** @var int|null */
     private  $count;
+
+    /** @var int|null */
     private  $filteredCount;
+
+    /**
+     * @var boolean
+     */
+    private $dateFormatFunc;
 
     function   __construct( EntityManagerInterface $em, array $get){
         $this->alias = 'a';
@@ -84,18 +111,18 @@ class  Builder {
             {
                 case 'pdo_pgsql':
                     $em->getConfiguration()->addCustomDatetimeFunction( 'DATE_FORMAT', 
-                            \DoctrineExtensions\Query\Postgresql\DateFormat::class );
+                            "DoctrineExtensions\\Query\\Postgresql\\DateFormat" );
                     break;
 
                 case 'pdo_mysql':
                     $em->getConfiguration()->addCustomDatetimeFunction( 'DATE_FORMAT', 
-                            \DoctrineExtensions\Query\Mysql\DateFormat::class );
+                            "DoctrineExtensions\\Query\\Mysql\\DateFormat" );
                     break;
 
                 case 'pdo_oracle':
                 case 'oci8':
                     $em->getConfiguration()->addCustomDatetimeFunction( 'DATE_FORMAT', 
-                            \DoctrineExtensions\Query\Postgresql\DateFormat::class );
+                            "DoctrineExtensions\\Query\\Postgresql\\DateFormat" );
                     break;
 
                 default:
@@ -187,7 +214,7 @@ class  Builder {
      * @param string $col
      * @return self
      */
-    public  function   addHidden( $col ){
+    public  function   addHidden( $col ):self{
         $this->add( $col );
         $this->colsH[] = self::normalizeColName( $col );
         return  $this;
@@ -200,7 +227,7 @@ class  Builder {
      * @param string $alias   Alias for table
      * @return self
      */
-    public  function  join($field , $alias ){
+    public  function  join($field , $alias ):self{
         if( isset( $this->joins[$alias] ) )
             throw  new  BuilderException( sprintf( '%s already defined', $alias ) );
         $this->resetQuery();
@@ -218,7 +245,7 @@ class  Builder {
      * @throws BuilderException
      * @return self
      */
-    public  function  filter($colName, $function ){
+    public  function  filter($colName, $function ):self{
         if( !is_callable( $function ) )
             throw new \InvalidArgumentException( 'Argument #2 must be callable' );
 
@@ -236,10 +263,27 @@ class  Builder {
 
     /**
      * Get main repo
+     *
      * @return string
      */
-    public  function   getRepo(){ return $this->repo; }
-    public  function   getAlias(){ return  $this->alias; }
+    public  function   getRepo():string
+    {
+        if( null === $this->repo ) {
+            throw new BuilderException( 'Main repository not defined' );
+        }
+
+        return $this->repo;
+    }
+
+    /**
+     * Get alias for repository
+     *
+     * @return string
+     */
+    public  function   getAlias():string{
+        return  $this->alias;
+    }
+
     public  function   getJoins(){ return  $this->joins; }
     public  function   getColumns(){ return $this->cols; }
 
@@ -258,7 +302,7 @@ class  Builder {
     /**
      * Useful for Datatable. Draw is the number of ejecution and must be
      * returned in Json response
-     * @return  integer
+     * @return  integer|null
      */
     public  function   getDraw()
     {
@@ -273,12 +317,10 @@ class  Builder {
      */
     private  function   dataTableQuery($forCount = false){
         $alias = $this->getAlias();
-        $table = $this->getRepo();
         $get   = $this->get;
         $cols  = $this->getColumns();
-        if( !$table ) throw  new  BuilderException( 'Repositorio no definido' );
         $joins = $this->getJoins();
-        
+
         /*
          * Set to default
          */
@@ -299,9 +341,8 @@ class  Builder {
         } else {
             $select = str_replace(" , ", " ", implode(", ", $aColumns));
         }
-   
-        $cb = $this->_em
-                ->getRepository($table)
+
+        $cb = $this->getRepository()
                 ->createQueryBuilder($alias)
                 ->select($select)
                 ;
@@ -382,7 +423,9 @@ class  Builder {
                             $this->createParameter(trim($matches[1]), $cb ),
                             $this->createParameter(trim($matches[2]), $cb ) );
                     else
-                        $filter = $cb->expr()->between( $oColumns[$i], $matches[1], $matches[2] );
+                        $filter = $cb->expr()->between( $oColumns[$i],
+                            $this->createParameter(trim($matches[1]), $cb),
+                            $this->createParameter(trim($matches[2]), $cb));
                 } else{
                     $filter = $this->getWhereFor( $oColumns[$i], $val, $cb );
                 }
@@ -411,8 +454,8 @@ class  Builder {
     /**
      * @return int
      */
-    public  function  getFilteredCount(){
-        if( $this->filteredCount === null ){
+    public  function  getFilteredCount():int{
+        if( null === $this->filteredCount ){
             $query = $this->dataTableQuery(true);
             $aResultTotal = $query->getResult();
             $this->filteredCount = intval($aResultTotal[0][1]);
@@ -421,12 +464,20 @@ class  Builder {
     }
 
     /**
+     * @var \Doctrine\ORM\EntityRepository
+     */
+    private function getRepository():\Doctrine\ORM\EntityRepository {
+        return $this->_em
+            ->getRepository($this->getRepo());
+    }
+
+    /**
      * Returns ORM Query
      * @return \Doctrine\ORM\Query
      */
     private function  getQuery()
     {
-        if( $this->query === null ) {
+        if( null === $this->query ) {
             $this->query = $this->dataTableQuery();
         }
         return  $this->query;
@@ -518,17 +569,20 @@ class  Builder {
     /**
      * Get result of query.
      *
-     * @return iterator
+     * @return \Generator
      */
     public  function  getAll(){
         $cols   = $this->getColumns();
         $result = array();
-        foreach( $this->getResult() as $row ){
+        foreach( $this->getResult() as $row ) {
             $xrow = array();
-            for( $i = 0; $i < count( $cols ); $i ++ ){
+            for( $i = 0; $i < count( $cols ); $i ++ ) {
                 $colName = self::normalizeColName( $cols[$i] );
                 if( !$colName ) continue;
+
+                /* Not returned columns */
                 if( in_array( $colName, $this->colsH ) ) continue;
+
                 if( isset( $this->filter[$colName] ) ){
                     $data = $this->filter[$colName]( $row );
                     $xrow[$colName] = $data;
@@ -573,10 +627,7 @@ class  Builder {
     public function getCount(){
         if( $this->count === null ){
             $alias = $this->getAlias();
-            $table = $this->getRepo();
-            if( !$table ) throw  new  BuilderException( 'Repositorio no definido' );
-            $cb = $this->_em
-                ->getRepository( $table )
+            $cb = $this->getRepository()
                 ->createQueryBuilder($alias)
                 ->select( 'COUNT(' . $alias . ' )' )
                 ->setMaxResults(1);
