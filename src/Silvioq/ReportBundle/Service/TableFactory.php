@@ -10,7 +10,6 @@ use Silvioq\ReportBundle\Table\Table;
 
 class TableFactory
 {
-
     /**
      * @var EntityManagerInterface
      */
@@ -30,12 +29,11 @@ class TableFactory
     /**
      * @return Table
      */    
-    public function build($entityClass)
+    public function build($entityClass):Table
     {
-
+        /** @var array */
         $columns = $this->columnsFromAnnotation($entityClass);
-        if( count( $columns ) == 0 )
-        {
+        if( count( $columns ) == 0 ) {
             $columns = $this->columnsFromMetadata($entityClass);
         }
 
@@ -52,11 +50,10 @@ class TableFactory
 
         $table = new Table($entityClass);
 
-        foreach( $columns as $col )
-        {
+        foreach( $columns as $col ) {
             $table->add( $col->name, $col->label, $col->getter );
         }
-        
+
         return $table;
     }
 
@@ -64,7 +61,7 @@ class TableFactory
      * @param $entityClass string
      * @return array
      */
-    private function columnsFromAnnotation($entityClass)
+    private function columnsFromAnnotation($entityClass):array
     {
         $class = new \ReflectionClass($entityClass);
         // TODO: Check. Needed for autoload
