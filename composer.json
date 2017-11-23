@@ -27,7 +27,8 @@
     ],
     "require-dev": {
         "matthiasnoback/symfony-dependency-injection-test": "^2.0",
-        "phpunit/phpunit": "^6.0"
+        "phpunit/phpunit": "^6.0",
+        "phan/phan": "~0.8"
     },
     "archive": {
         "exclude": ["Tests", "phpunit.xml.dist", ".travis.yml"]
