@@ -22,6 +22,7 @@ class ScalarizeTest extends TestCase
         $date->setDate( 1945,10,17 );
         $date->setTime( 0,0, 0 );
         $this->assertEquals( '1945-10-17', Scalarize::toScalar( $date ) );
+        $this->assertEquals( '17/10/1945', (new Scalarize(['date_format' => 'd/m/Y']))->scalarize($date) );
     }
 
     public function testArray()
@@ -29,6 +30,8 @@ class ScalarizeTest extends TestCase
         $this->assertEquals( '1,2,name', Scalarize::toScalar( [ 1, 2, 'name' ] ) );
         $arr = [ 'a' => 1, 'b' => 2, 'name' => 'name' ];
         $this->assertEquals( '1,2,name', Scalarize::toScalar( $arr ) );
+
+        $this->assertEquals( '1-2-name', (new Scalarize(['array_separator' => '-' ]))->scalarize($arr) );
     }
 
     public function testObject()
@@ -49,6 +52,21 @@ class ScalarizeTest extends TestCase
     {
         $i = $this->iterateme();
         $this->assertEquals( '1,2,hello', Scalarize::toScalar($i ) );
+    }
+
+    public function testConfig()
+    {
+        $this->assertNotNull( $scalar = new Scalarize( ) );
+        $this->assertNotNull( $scalar = new Scalarize( ['array_separator' => '|' ] ) );
+        $this->assertNotNull( $scalar = new Scalarize( ['date_format' => 'Y-m' ] ) );
+    }
+
+    /**
+     * @expectedException \Symfony\Component\OptionsResolver\Exception\UndefinedOptionsException
+     */
+    public function testInvalidConfig()
+    {
+        new Scalarize( [ 'not_valid_option' => false] );
     }
 
 
