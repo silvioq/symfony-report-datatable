@@ -46,7 +46,6 @@ class Column
         return $this->getter;
     }
     
-    
     /**
      * @see https://github.com/symfony/symfony/blob/master/src/Symfony/Component/Form/FormRenderer.php#L306
      */
@@ -54,5 +53,5 @@ class Column
     {
         return ucfirst(trim(strtolower(preg_replace(array('/([A-Z])/', '/[_\s]+/'), array('_$1', ' '), $text))));
     }
-
 }
+// vim:sw=4 ts=4 sts=4 et

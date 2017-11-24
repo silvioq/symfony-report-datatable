@@ -79,5 +79,5 @@ class Table
                 else return $entity->$getter();
             }, $this->columns );
     }
-
 }
+// vim:sw=4 ts=4 sts=4 et
