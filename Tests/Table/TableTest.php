@@ -47,6 +47,17 @@ class TableTest extends TestCase
         $table->getHeader();
     }
 
+    /**
+     * @depends testValidColumn
+     */
+    public function testRemoveColumn()
+    {
+        $table = new Table( \stdClass::class );
+        $table->add('name' )->add('lastName')->add('age')->removeField('age');
+
+        $this->assertEquals( ['Name', 'Last name'], $table->getHeader() );
+    }
+
     public function testNotBuildedTableOnRows()
     {
         $table = new Table(self::class);

@@ -35,6 +35,23 @@ class Table
     }
 
     /**
+     * @return self
+     * @throws \OutOfBoundsException
+     */
+    public function removeField( $name ):self
+    {
+        foreach( $this->columns as $index => $column )
+        {
+            if( $column->getName() === $name ) {
+                unset( $this->columns[$index] );
+                return $this;
+            }
+        }
+
+        throw new \OutOfBoundsException( sprintf( 'Column %s does not exists', $name ) );
+    }
+
+    /**
      * @return array
      */
     public function getHeader():array
