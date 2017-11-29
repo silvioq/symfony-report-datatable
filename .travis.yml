@@ -13,6 +13,6 @@ env:
   
 before_script:
   - composer self-update
-  - sh -c "if [ $WITH_EXTENSIONS == 0 ] ; then composer require --no-update beberlei/DoctrineExtensions; fi"
-  - sh -c "if [ $WITH_EXTENSIONS == 0 ] ; then composer require --no-update phpoffice/phpspreadsheet; fi"
+  - bash -c "if [ \"$WITH_EXTENSIONS\" == \"1\" ] ; then composer require --no-update beberlei/DoctrineExtensions; fi"
+  - bash -c "if [ \"$WITH_EXTENSIONS\" == \"1\" ] ; then composer require --no-update phpoffice/phpspreadsheet; fi"
   - composer install
