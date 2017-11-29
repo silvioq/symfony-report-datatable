@@ -6,7 +6,13 @@ php:
 
 before_install:
   - pecl install -f ast-0.1.6
+
+env:
+  - WITH_EEXTENSIONS=1
+  - WITH_EEXTENSIONS=0
   
 before_script:
   - composer self-update
+  - sh -c "if [ $WITH_EXTENSIONS == 0 ] ; then composer require --no-update beberlei/DoctrineExtensions; fi"
+  - sh -c "if [ $WITH_EXTENSIONS == 0 ] ; then composer require --no-update phpoffice/phpspreadsheet; fi"
   - composer install
