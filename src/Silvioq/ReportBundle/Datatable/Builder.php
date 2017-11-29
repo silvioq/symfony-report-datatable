@@ -550,9 +550,12 @@ class  Builder {
             $param = $this->createParameter( "%" . strtolower( $searchStr ). "%", $cb );
             return  $cb->expr()->like( sprintf('LOWER(%s)',$columnName), $param );
         }
-        elseif( in_array( $ct, array( ORMType::INTEGER, ORMType::SMALLINT, ORMType::BIGINT ) )  && is_numeric( $searchStr ) )
+        elseif( in_array( $ct, array( ORMType::INTEGER, ORMType::SMALLINT, ORMType::BIGINT ) ) )
         {
-            return  $cb->expr()->eq( $columnName, $searchStr );
+            if( is_numeric( $searchStr ) )
+                return $cb->expr()->eq( $columnName, $searchStr );
+            else
+                return '';
         }
         elseif( $this->dateFormatFunc && ( $ct == ORMType::DATE ||  $ct == ORMType::DATETIME ) )
         {
