@@ -18,7 +18,8 @@
         "psr-4": { "Silvioq\\ReportBundle\\Tests\\": "./Tests" }
     },
     "suggest": {
-        "beberlei/DoctrineExtensions": "For DATE_FORMAT functions"
+        "beberlei/DoctrineExtensions": "For DATE_FORMAT functions",
+        "phpoffice/phpspreadsheet": "For spreadsheet utils"
     },
     "authors": [
         {
