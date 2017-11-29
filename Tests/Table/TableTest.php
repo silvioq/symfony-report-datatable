@@ -58,6 +58,17 @@ class TableTest extends TestCase
         $this->assertEquals( ['Name', 'Last name'], $table->getHeader() );
     }
 
+
+    /**
+     * @depends testValidColumn
+     * @expectedException \InvalidArgumentException
+     */
+    public function testDuplicatedColumn()
+    {
+        $table = new Table( \stdClass::class );
+        $table->add('name' )->add('lastName')->add('age')->add('name');
+    }
+
     public function testNotBuildedTableOnRows()
     {
         $table = new Table(self::class);

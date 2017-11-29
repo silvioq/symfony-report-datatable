@@ -26,29 +26,33 @@ class Table
     }
 
     /**
+     * Add field.
+     *
      * @return self
      */
     public function add( $name, $label = null, $getter = null ):self
     {
-        array_push( $this->columns, new Column($name,$label, $getter ) );
+        if( isset( $this->columns[$name] ) )
+            throw new \InvalidArgumentException( sprintf( 'Column %s already exists', $name ) );
+
+        $this->columns[$name] = new Column($name, $label, $getter);
         return $this;
     }
 
     /**
      * @return self
+     *
      * @throws \OutOfBoundsException
      */
     public function removeField( $name ):self
     {
-        foreach( $this->columns as $index => $column )
-        {
-            if( $column->getName() === $name ) {
-                unset( $this->columns[$index] );
-                return $this;
-            }
+        if( !isset( $this->columns[$name] ) ) {
+            throw new \OutOfBoundsException( sprintf( 'Column %s does not exists', $name ) );
         }
 
-        throw new \OutOfBoundsException( sprintf( 'Column %s does not exists', $name ) );
+        unset( $this->columns[$name] );
+
+        return $this;
     }
 
     /**
@@ -61,7 +65,7 @@ class Table
               
         return array_map( function(Column $col){
             return $col->getLabel();
-        }, $this->columns );
+        }, array_values($this->columns) );
     }
 
     /**
@@ -89,12 +93,11 @@ class Table
 
         return array_map( function(Column $col)use($entity){
                 $getter = $col->getGetter();
-                if( is_callable( $getter ) )
-                {
+                if( is_callable( $getter ) ) {
                     return $getter($entity);
-                }
-                else return $entity->$getter();
-            }, $this->columns );
+                } else
+                    return $entity->$getter();
+            }, array_values($this->columns) );
     }
 }
 // vim:sw=4 ts=4 sts=4 et
