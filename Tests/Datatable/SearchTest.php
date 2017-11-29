@@ -46,11 +46,16 @@ class  SearchTest  extends  TestCase
             ->will( $this->returnValue(ORMType::STRING))
             ;
 
-        $metadataMock->expects($this->once())
-            ->method('getFieldNames')
-            ->will( $this->returnValue(['field1','field2']))
+        $metadataMock->expects($this->at(3))
+            ->method('getTypeOfField')
+            ->with( $this->equalTo('field3'))
+            ->will( $this->returnValue(ORMType::JSON_ARRAY))
             ;
 
+        $metadataMock->expects($this->once())
+            ->method('getFieldNames')
+            ->will( $this->returnValue(['field1','field2','field3']))
+            ;
 
         $repoMock->expects($this->once())
             ->method("createQueryBuilder")
@@ -60,20 +65,21 @@ class  SearchTest  extends  TestCase
 
         $qbMock->expects($this->once())
             ->method('select')
-            ->with($this->equalTo('a.field1, a.field2'))
+            ->with($this->equalTo('a.field1, a.field2, a.field3'))
             ->will($this->returnSelf() )
             ;
 
         $e = new Expr();
         $comp1 = $e->like('LOWER(a.field1)', ':ppp1');
         $comp2 = $e->like('LOWER(a.field2)', ':ppp1');
+        $comp3 = $e->like('LOWER(a.field3)', ':ppp1');
         $qbMock->expects($this->once())
             ->method('andWhere')
-            ->with($this->equalTo(new Expr\Orx([$comp1, $comp2] )))
+            ->with($this->equalTo(new Expr\Orx([$comp1, $comp2, $comp3] )))
             ->will($this->returnSelf() )
             ;
             
-        $qbMock->expects($this->exactly(2))
+        $qbMock->expects($this->exactly(3))
             ->method('setParameter')
             ->with($this->equalTo('ppp1'),$this->equalTo('%x%'),$this->anything())
             ->will($this->returnSelf())
@@ -100,12 +106,14 @@ class  SearchTest  extends  TestCase
               "columns" => [
                    [ 'searchable' => true ],
                    [ 'searchable' => true ],
+                   [ 'searchable' => true ],
                 ],
             ] );
 
         $dt
             ->add( 'field1' )
             ->add( 'field2' )
+            ->add( 'field3' )
             ->from( 'Test:Table', 'a' )
             ;
 
