@@ -289,7 +289,7 @@ class  WheresTest  extends  TestCase
      * @covers Builder::condition
      */
     function testAndWhereCalledFromFilteredCount()
-    {     
+    {
         $emMock  = $this->createMock('\Doctrine\ORM\EntityManager',
                array('getRepository', 'getClassMetadata', 'persist', 'flush'), array(), '', false);
         (new \Silvioq\ReportBundle\Tests\MockBuilder\ConfigurationMockBuilder($this,$emMock))->configure();
