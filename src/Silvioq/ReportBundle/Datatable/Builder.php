@@ -545,8 +545,7 @@ class  Builder {
     private function  getWhereFor( string $columnName, string  $searchStr, QueryBuilder $cb ):string
     {
         $ct = $this->getColumnType( $columnName );
-        if( $ct === ORMType::STRING || $ct === ORMType::TEXT )
-        {
+        if( in_array( $ct, [ ORMType::STRING, ORMType::TEXT, ORMType::SIMPLE_ARRAY, ORMType::JSON_ARRAY ] ) ) {
             $param = $this->createParameter( "%" . strtolower( $searchStr ). "%", $cb );
             return  $cb->expr()->like( sprintf('LOWER(%s)',$columnName), $param );
         }
