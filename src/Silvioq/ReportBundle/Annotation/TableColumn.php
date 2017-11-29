@@ -18,8 +18,6 @@ class TableColumn
     public $order = 0;
 
     /**
-     * TODO: Ignore in annotations
-     *
      * @var int
      */
     public $key;
