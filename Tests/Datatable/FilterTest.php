@@ -17,6 +17,7 @@ class  FilterTest  extends  TestCase
     {
         $emMock  = $this->createMock('\Doctrine\ORM\EntityManager',
                array('getRepository', 'getClassMetadata', 'persist', 'flush'), array(), '', false);
+        (new \Silvioq\ReportBundle\Tests\MockBuilder\ConfigurationMockBuilder($this,$emMock))->configure();
         $repoMock = $this->createMock( '\Doctrine\ORM\EntityRepository', ["createQueryBuilder"], array(), '', false );
         $qbMock = $this->createMock( '\Doctrine\ORM\QueryBuilder', ["select", "getQuery"], array(), '', false );
         $queryMock = $this->createMock( '\Doctrine\ORM\AbstractQuery', ['getResult'], array(), '', false );
@@ -106,6 +107,7 @@ class  FilterTest  extends  TestCase
             ->getMockBuilder(EntityManager::class)
             ->disableOriginalConstructor()
             ->getMock();
+        (new \Silvioq\ReportBundle\Tests\MockBuilder\ConfigurationMockBuilder($this,$emMock))->configure();
 
          $dt = new Builder( $emMock, [ "search" => [ "value" => "x" ] ] );
          $dt
@@ -126,16 +128,17 @@ class  FilterTest  extends  TestCase
             ->getMockBuilder(EntityManager::class)
             ->disableOriginalConstructor()
             ->getMock();
+        (new \Silvioq\ReportBundle\Tests\MockBuilder\ConfigurationMockBuilder($this,$emMock))->configure();
 
-         $dt = new Builder( $emMock, [ "search" => [ "value" => "x" ] ] );
-         $dt
-            ->add( 'field1' )
-            ->add( 'field2' )
-            ->from( 'Test:Table', 'a' );
+        $dt = new Builder( $emMock, [ "search" => [ "value" => "x" ] ] );
+        $dt
+           ->add( 'field1' )
+           ->add( 'field2' )
+           ->from( 'Test:Table', 'a' );
 
-         $dt->filter( 'field2', 'get_class' );
-         $this->expectException( BuilderException::class );
-         $dt->filter( 'field2', 'get_class' );
+        $dt->filter( 'field2', 'get_class' );
+        $this->expectException( BuilderException::class );
+        $dt->filter( 'field2', 'get_class' );
     }
 
     /**
@@ -147,6 +150,7 @@ class  FilterTest  extends  TestCase
             ->getMockBuilder(EntityManager::class)
             ->disableOriginalConstructor()
             ->getMock();
+        (new \Silvioq\ReportBundle\Tests\MockBuilder\ConfigurationMockBuilder($this,$emMock))->configure();
 
          $dt = new Builder( $emMock, [ "search" => [ "value" => "x" ] ] );
          $dt

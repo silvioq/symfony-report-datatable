@@ -20,8 +20,9 @@ class  BuilderTest  extends  TestCase
     {
         $emMock  = $this->createMock('\Doctrine\ORM\EntityManager',
                array('getRepository', 'getClassMetadata', 'persist', 'flush'), array(), '', false);
-        
-            
+
+        (new \Silvioq\ReportBundle\Tests\MockBuilder\ConfigurationMockBuilder($this,$emMock))->configure();
+
         $dt = new Builder( $emMock, 
             [ "search" => [ "value" => "x" ] ] );
         $dt
@@ -45,6 +46,8 @@ class  BuilderTest  extends  TestCase
         $emMock  = $this->createMock('\Doctrine\ORM\EntityManager',
                array('getRepository', 'getClassMetadata', 'persist', 'flush'), array(), '', false);
 
+        (new \Silvioq\ReportBundle\Tests\MockBuilder\ConfigurationMockBuilder($this,$emMock))->configure();
+
         $dt = new Builder( $emMock, [ "draw" => 'me' ] );
         $this->assertEquals( 'me', $dt->getDraw() );
     }
@@ -58,6 +61,8 @@ class  BuilderTest  extends  TestCase
             ->getMockBuilder(EntityManager::class)
             ->disableOriginalConstructor()
             ->getMock();
+
+        (new \Silvioq\ReportBundle\Tests\MockBuilder\ConfigurationMockBuilder($this,$emMock))->configure();
 
         $dt = new Builder( $emMock, [ "search" => [ "value" => "x" ] ] );
         $dt
@@ -82,6 +87,8 @@ class  BuilderTest  extends  TestCase
             ->disableOriginalConstructor()
             ->getMock();
 
+        (new \Silvioq\ReportBundle\Tests\MockBuilder\ConfigurationMockBuilder($this,$emMock))->configure();
+
         $dt = new Builder( $emMock, [ ] );
         $dt
             ->add( 'field1' )
@@ -103,6 +110,8 @@ class  BuilderTest  extends  TestCase
             ->getMockBuilder(EntityManager::class)
             ->disableOriginalConstructor()
             ->getMock();
+
+        (new \Silvioq\ReportBundle\Tests\MockBuilder\ConfigurationMockBuilder($this,$emMock))->configure();
 
         $dt = new Builder( $emMock, [ ] );
         $dt

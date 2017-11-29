@@ -32,9 +32,10 @@ class  FactoryTest  extends  TestCase
 
     public  function  testFactory()
     {
-          $emMock  = $this->createMock('\Doctrine\ORM\EntityManager',
-               array('getRepository', 'getClassMetadata', 'persist', 'flush'), array(), '', false);
-        
+        $emMock  = $this->createMock('\Doctrine\ORM\EntityManager',
+                array('getRepository', 'getClassMetadata', 'persist', 'flush'), array(), '', false);
+        (new \Silvioq\ReportBundle\Tests\MockBuilder\ConfigurationMockBuilder($this,$emMock))->configure();
+
         $factory = new DatatableFactory( $emMock, $this->requestStack );
         $this->assertInstanceOf( Builder::class, $factory->buildDatatable() );
     }
