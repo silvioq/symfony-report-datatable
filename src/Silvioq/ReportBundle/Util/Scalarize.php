@@ -17,9 +17,11 @@ class Scalarize
     private $arraySeparator;
 
     /**
-     * @var string
+     * @var string|callable
      */
     private $dateFormat;
+
+    const  SPREADSHEET_FORMAT = 'SPREADSHEET_FORMAT';
 
     /**
      * @param array config  Config settings
@@ -27,6 +29,7 @@ class Scalarize
      * Default settings
      * - array_separator. Value ","
      * - date_format. Value 'Y-m-d'
+     * - spreadsheet_support: Value false. Can activate with phpoffice/phpspreadsheet
      */
     public function __construct( array $config = array() )
     {
@@ -34,13 +37,25 @@ class Scalarize
         $resolver->setDefaults( [
             'array_separator' => ',',
             'date_format' => 'Y-m-d',
+            'spreadsheet_support' => false,
         ]);
+
+        $resolver->setAllowedTypes('spreadsheet_support', ['boolean'] );
+        $resolver->setAllowedTypes('date_format', ['string', 'callable'] );
 
         /** @var array */
         $options = $resolver->resolve( $config );
 
         $this->arraySeparator = (string)$options['array_separator'];
-        $this->dateFormat = (string)$options['date_format'];
+
+        if( $options['spreadsheet_support'] ) {
+            if( !class_exists( "\\PhpOffice\\PhpSpreadsheet\\Shared\\Date" ) )
+                throw new \Symfony\Component\OptionsResolver\Exception\UndefinedOptionsException('PhpSpreadsheet not installed' );
+
+            $this->dateFormat = function(\DateTime $x){ return \PhpOffice\PhpSpreadsheet\Shared\Date::PHPToExcel($x); };
+        } else {
+            $this->dateFormat = $options['date_format'];
+        }
     }
 
     /**
@@ -54,7 +69,9 @@ class Scalarize
         if( is_string( $data ) || is_bool( $data ) || is_numeric( $data ) )
             return $data;
 
-        if( $data instanceof \DateTime ) return $data->format($this->dateFormat);
+        if( $data instanceof \DateTime ) {
+            return is_callable($this->dateFormat) ? call_user_func($this->dateFormat,$data) : $data->format($this->dateFormat);
+        }
 
         if( is_object( $data ) && method_exists( $data, '__toString' ) ) return (string)$data;
 
