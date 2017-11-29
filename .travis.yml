@@ -8,8 +8,8 @@ before_install:
   - pecl install -f ast-0.1.6
 
 env:
-  - WITH_EEXTENSIONS=1
-  - WITH_EEXTENSIONS=0
+  - WITH_EXTENSIONS=1
+  - WITH_EXTENSIONS=0
   
 before_script:
   - composer self-update
