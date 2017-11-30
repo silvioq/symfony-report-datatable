@@ -19,17 +19,17 @@ class TableFactory
      * @var Reader
      */
     private $reader;
-    
+
     public function __construct(EntityManagerInterface $em, Reader $reader)
     {
         $this->em = $em;
         $this->reader = $reader;
     }
-    
+
     /**
      * @return Table
      */    
-    public function build($entityClass):Table
+    public function build($entityClass, array $scalarizerOptions = []):Table
     {
         /** @var array */
         $columns = $this->columnsFromAnnotation($entityClass);
@@ -48,7 +48,7 @@ class TableFactory
             return 0;
         });
 
-        $table = new Table($entityClass);
+        $table = new Table($entityClass, $scalarizerOptions);
 
         foreach( $columns as $col ) {
             $table->add( $col->name, $col->label, $col->getter );
