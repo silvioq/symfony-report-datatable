@@ -15,7 +15,7 @@ class TableColumn
     public $getter;
 
     /** @var int */
-    public $order = 0;
+    public $order = INF;
 
     /**
      * @var int
@@ -29,7 +29,7 @@ class TableColumn
             'name' => null,
             'label' => null,
             'getter' => null,
-            'order' => 0,
+            'order' => INF,
         ]);
 
         $options = $resolver->resolve($array);

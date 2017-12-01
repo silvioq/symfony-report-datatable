@@ -83,11 +83,11 @@ class TableFactoryTest extends TestCase
         $table = $factory->build(Entity\Entity::class);
         $this->assertInstanceOf( Table::class, $table );
 
-        $this->assertEquals( [ "This name", "Age" ], $table->getHeader() );
+        $this->assertEquals( [ "Age", "This name" ], $table->getHeader() );
 
         $entity = new Entity\Entity();
         $entity->setName('Maradona');
-        $this->assertEquals( [ 'Maradona', 42 ], $table->getRow($entity) );
+        $this->assertEquals( [ 42, 'Maradona'], $table->getRow($entity) );
     }
 
     /**
