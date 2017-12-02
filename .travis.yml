@@ -14,5 +14,4 @@ env:
 before_script:
   - composer self-update
   - bash -c "if [ \"$WITH_EXTENSIONS\" == \"1\" ] ; then composer require --no-update beberlei/DoctrineExtensions; fi"
-  - bash -c "if [ \"$WITH_EXTENSIONS\" == \"1\" ] ; then composer require --no-update phpoffice/phpspreadsheet:dev-master; fi"
   - composer install
