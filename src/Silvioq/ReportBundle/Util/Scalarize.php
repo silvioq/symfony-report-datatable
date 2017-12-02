@@ -21,15 +21,12 @@ class Scalarize
      */
     private $dateFormat;
 
-    const  SPREADSHEET_FORMAT = 'SPREADSHEET_FORMAT';
-
     /**
      * @param array config  Config settings
      *
      * Default settings
      * - array_separator. Value ","
      * - date_format. Value 'Y-m-d'
-     * - spreadsheet_support: Value false. Can activate with phpoffice/phpspreadsheet
      */
     public function __construct( array $config = array() )
     {
@@ -47,15 +44,7 @@ class Scalarize
         $options = $resolver->resolve( $config );
 
         $this->arraySeparator = (string)$options['array_separator'];
-
-        if( $options['spreadsheet_support'] ) {
-            if( !class_exists( "\\PhpOffice\\PhpSpreadsheet\\Shared\\Date" ) )
-                throw new \Symfony\Component\OptionsResolver\Exception\UndefinedOptionsException('PhpSpreadsheet not installed' );
-
-            $this->dateFormat = function(\DateTime $x){ return \PhpOffice\PhpSpreadsheet\Shared\Date::PHPToExcel($x); };
-        } else {
-            $this->dateFormat = $options['date_format'];
-        }
+        $this->dateFormat = $options['date_format'];
     }
 
     /**

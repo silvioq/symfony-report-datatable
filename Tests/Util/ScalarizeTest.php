@@ -69,25 +69,6 @@ class ScalarizeTest extends TestCase
         new Scalarize( [ 'not_valid_option' => false] );
     }
 
-    /**
-     * @depends testDateTime
-     */
-    public function testSpreadsheet()
-    {
-        if( !class_exists( "\\PhpOffice\\PhpSpreadsheet\\Shared\\Date" ) )
-        {
-            $this->markTestSkipped();
-            return;
-        }
-        $scalarizer = new Scalarize(['spreadsheet_support' => true]);
-        $date = new \DateTime();
-        $date->setDate( 1945,10,17 );
-        $date->setTime( 0,0, 0 );
-
-        $this->assertEquals( 16727.0, $scalarizer->scalarize($date));
-    }
-
-
     private function iterateme()
     {
         yield 1;
