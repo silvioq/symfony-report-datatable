@@ -14,7 +14,7 @@ class TableColumn
     public $label;
     public $getter;
 
-    /** @var int */
+    /** @var int|float */
     public $order = INF;
 
     /**
