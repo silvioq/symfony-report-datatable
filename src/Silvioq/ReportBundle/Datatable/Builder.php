@@ -549,7 +549,7 @@ class  Builder {
             $param = $this->createParameter( "%" . strtolower( $searchStr ). "%", $cb );
             return  $cb->expr()->like( sprintf('LOWER(%s)',$columnName), $param );
         }
-        elseif( in_array( $ct, array( ORMType::INTEGER, ORMType::SMALLINT, ORMType::BIGINT ) ) )
+        elseif( in_array( $ct, array( ORMType::INTEGER, ORMType::SMALLINT, ORMType::BIGINT, ORMType::DECIMAL, ORMType::FLOAT ) ) )
         {
             if( is_numeric( $searchStr ) )
                 return $cb->expr()->eq( $columnName, $searchStr );

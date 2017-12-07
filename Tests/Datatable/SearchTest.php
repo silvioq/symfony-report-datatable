@@ -121,7 +121,10 @@ class  SearchTest  extends  TestCase
         
     }
 
-    public  function  testSearchStringOnIntegerColumns()
+    /**
+     * @dataProvider getORMTypes
+     */
+    public  function  testSearchStringOnNumericColumns($numericType, $dataValue = 3)
     {
         $emMock  = $this->createMock('\Doctrine\ORM\EntityManager',
                array('getRepository', 'getClassMetadata'), array(), '', false);
@@ -146,7 +149,7 @@ class  SearchTest  extends  TestCase
         $metadataMock->expects($this->at(1))
             ->method('getTypeOfField')
             ->with( $this->equalTo('field1'))
-            ->will( $this->returnValue(ORMType::INTEGER))
+            ->will( $this->returnValue($numericType))
             ;
 
         $metadataMock->expects($this->at(2))
@@ -220,7 +223,10 @@ class  SearchTest  extends  TestCase
     }
 
 
-    public  function  testSearchOnIntegerColumns()
+    /**
+     * @dataProvider getORMTypes
+     */
+    public  function  testSearchOnIntegerColumns($numericType, $dataValue = 3)
     {
         $emMock  = $this->createMock('\Doctrine\ORM\EntityManager',
                array('getRepository', 'getClassMetadata'), array(), '', false);
@@ -245,20 +251,19 @@ class  SearchTest  extends  TestCase
         $metadataMock->expects($this->at(1))
             ->method('getTypeOfField')
             ->with( $this->equalTo('field1'))
-            ->will( $this->returnValue(ORMType::INTEGER))
+            ->will( $this->returnValue($numericType))
             ;
 
         $metadataMock->expects($this->at(2))
             ->method('getTypeOfField')
             ->with( $this->equalTo('field2'))
-            ->will( $this->returnValue(ORMType::INTEGER))
+            ->will( $this->returnValue($numericType))
             ;
 
         $metadataMock->expects($this->once())
             ->method('getFieldNames')
             ->will( $this->returnValue(['field1','field2']))
             ;
-
 
         $repoMock->expects($this->once())
             ->method("createQueryBuilder")
@@ -273,8 +278,8 @@ class  SearchTest  extends  TestCase
             ;
 
         $e = new Expr();
-        $comp1 = $e->eq('a.field1', 3);
-        $comp2 = $e->eq('a.field2', 3);
+        $comp1 = $e->eq('a.field1', $dataValue);
+        $comp2 = $e->eq('a.field2', $dataValue);
         $qbMock->expects($this->once())
             ->method('andWhere')
             ->with($this->equalTo(new Expr\Orx([$comp1, $comp2] )))
@@ -298,7 +303,7 @@ class  SearchTest  extends  TestCase
             
         $dt = new Builder( $emMock, 
             [ 
-              "search" => [ "value" => "3" ],
+              "search" => [ "value" => (string)$dataValue ],
               "columns" => [
                    [ 'searchable' => true ],
                    [ 'searchable' => true ],
@@ -313,7 +318,16 @@ class  SearchTest  extends  TestCase
         $this->assertEquals( $dt->getArray(), [] );
     }
 
-
+    public function getORMTypes():array
+    {
+        return [
+            [ ORMType::INTEGER, 3 ],
+            [ ORMType::DECIMAL, 3.16 ],
+            [ ORMType::SMALLINT, -4 ],
+            [ ORMType::BIGINT, 2 ** 33 ],
+            [ ORMType::FLOAT, 3.141592 ],
+        ];
+    }
 
     public  function  testSearchNull()
     {
