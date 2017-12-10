@@ -535,7 +535,7 @@ class  SearchTest  extends  TestCase
 
         $e = new Expr();
         if( \Silvioq\ReportBundle\Tests\MockBuilder\ConfigurationMockBuilder::doctrineExtensionsEnabled() ) {
-            $comp1 = $e->between("DATE_FORMAT('YYYY-MM-DD',a.field1)", ':ppp1', ':ppp2');
+            $comp1 = $e->between("DATE_FORMAT(a.field1,'YYYY-MM-DD')", ':ppp1', ':ppp2');
         } else {
             $comp1 = $e->between('a.field1', ':ppp1', ':ppp2');
         }

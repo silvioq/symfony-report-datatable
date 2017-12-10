@@ -432,7 +432,7 @@ class  Builder {
                 } else if( preg_match( '/^between\s+(.*)and(.*)$/', $val, $matches ) ) {
                     $ct = $this->getColumnType( $oColumns[$i] );
                     if( $this->dateFormatFunc && ( $ct == ORMType::DATE ||  $ct == ORMType::DATETIME ) )
-                        $filter = $cb->expr()->between( sprintf("DATE_FORMAT('YYYY-MM-DD',%s)",$oColumns[$i]),
+                        $filter = $cb->expr()->between( sprintf("DATE_FORMAT(%s,'YYYY-MM-DD')",$oColumns[$i]),
                             $this->createParameter(trim($matches[1]), $cb ),
                             $this->createParameter(trim($matches[2]), $cb ) );
                     else
