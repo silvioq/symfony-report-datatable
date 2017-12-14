@@ -398,7 +398,7 @@ class  Builder {
                   && isset($get['columns'][$i]['searchable'] )
                   && false !== $get['columns'][$i]['searchable'] ){
                     $filter = $this->getWhereFor( $oColumns[$i], $search, $cb );
-                    if( $filter ) array_push( $aLike, $filter );
+                    if( '' !== $filter ) array_push( $aLike, $filter );
                 }
             }
             if(count($aLike) > 0) $cb->andWhere(new Expr\Orx($aLike));
@@ -416,7 +416,10 @@ class  Builder {
             if( isset( $column['search'] ) && isset( $column['search']['value'] ) && $column['search']['value'] )
             {
                 $val = $column['search']['value'];
-                $filter = null;
+
+                /** @var string */
+                $filter = '';
+
                 if( $val === 'is null'){
                     $filter = $cb->expr()->isNull( $oColumns[$i] );
                 } else if( $val === 'is not null' ){
@@ -442,7 +445,7 @@ class  Builder {
                 } else{
                     $filter = $this->getWhereFor( $oColumns[$i], $val, $cb );
                 }
-                if( $filter ) $cb->andWhere( $filter );
+                if( '' !== $filter ) $cb->andWhere( $filter );
             }
         }
 
