@@ -489,7 +489,7 @@ class  Builder {
      * Returns ORM Query
      * @return \Doctrine\ORM\AbstractQuery
      */
-    private function  getQuery():\Doctrine\ORM\AbstractQuery
+    private function getQuery():\Doctrine\ORM\AbstractQuery
     {
         if( null === $this->query ) {
             $this->query = $this->dataTableQuery();
@@ -497,7 +497,7 @@ class  Builder {
         return  $this->query;
     }
 
-    private function  getColumnTypes( ):array
+    private function getColumnTypes( ):array
     {
         if( $this->columnTypes !== null ) return $this->columnTypes;
         $md = $this->_em->getClassMetadata( $this->getRepo() );
@@ -698,7 +698,7 @@ class  Builder {
     }
 
 
-    static  function   normalizeColName($colName):string
+    static private function normalizeColName($colName):string
     {
         return  str_replace( '.', '_', $colName );
     }
