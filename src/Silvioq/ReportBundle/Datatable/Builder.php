@@ -567,6 +567,8 @@ class  Builder {
             $param = $this->createParameter( "%" . strtolower( $searchStr ). "%", $cb );
             return  $cb->expr()->like( $columnName, $param );
         }
+        elseif( ORMType::BOOLEAN === $ct )
+            return '';
 
         throw new \LogicException( sprintf( "Can't generate where expression for column %s, search string %s",
                     $columnName, $searchStr ) );
