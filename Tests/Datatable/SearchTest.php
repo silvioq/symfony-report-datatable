@@ -767,5 +767,124 @@ class  SearchTest  extends  TestCase
         $this->assertEquals( $dt->getArray(), [] );
 
     }
+
+    /**
+     * @covers Builder::getWhereFor()
+     * @dataProvider getAllORMTypes
+     */
+    public function testAllORMTypes($ormType, $searchStr, $driver, $expectedSearch = null )
+    {
+        $emMock  = $this->createMock('\Doctrine\ORM\EntityManager',
+               array('getRepository', 'getClassMetadata'), array(), '', false);
+
+        (new \Silvioq\ReportBundle\Tests\MockBuilder\ConfigurationMockBuilder($this,$emMock, $driver))->configure();
+
+        $repoMock = $this->createMock( '\Doctrine\ORM\EntityRepository', ["createQueryBuilder"], array(), '', false );
+        $qbMock = $this->createMock( '\Doctrine\ORM\QueryBuilder', ["select", "getQuery", "andWhere",'expr'], array(), '', false );
+        $queryMock = $this->createMock( '\Doctrine\ORM\AbstractQuery', ['getResult'], array(), '', false );
+        $metadataMock = $this->createMock( '\Doctrine\ORM\Mapping\ClassMetadataInfo', ['getFieldNames','getTypeOfField'], array(), '', false );
+
+        $emMock->expects($this->once())
+            ->method('getRepository')
+            ->with($this->equalTo('Test:Table'))
+            ->will($this->returnValue($repoMock))
+            ;
+
+        $emMock->expects($this->once())
+            ->method('getClassMetadata')
+            ->with($this->equalTo('Test:Table'))
+            ->will($this->returnValue($metadataMock))
+            ;
+
+        $metadataMock->expects($this->at(1))
+            ->method('getTypeOfField')
+            ->with( $this->equalTo('field1'))
+            ->will( $this->returnValue($ormType))
+            ;
+
+        $metadataMock->expects($this->once())
+            ->method('getFieldNames')
+            ->will( $this->returnValue(['field1']))
+            ;
+
+        $repoMock->expects($this->once())
+            ->method("createQueryBuilder")
+            ->with($this->equalTo('a'))
+            ->will($this->returnValue( $qbMock ) )
+            ;
+
+        $qbMock->expects($this->once())
+            ->method('select')
+            ->with($this->equalTo('a.field1'))
+            ->will($this->returnSelf() )
+            ;
+
+        if (is_string($expectedSearch)) {
+            $qbMock->expects($this->once())
+                ->method('andWhere')
+                ->with($this->equalTo(new Expr\Orx($expectedSearch)))
+                ->will($this->returnSelf())
+                ;
+
+            $qbMock->expects($this->once())
+                ->method('setParameter')
+                ->will($this->returnSelf())
+                ;
+        } else if (false === $expectedSearch) {
+            $qbMock->expects($this->never())
+                ->method('andWhere');
+            $qbMock->expects($this->never())
+                ->method('setParameter');
+        }
+
+        $qbMock->expects($this->once())
+            ->method('getQuery')
+            ->will( $this->returnValue($queryMock) )
+            ;
+
+        $qbMock
+            ->method('expr')
+            ->will($this->returnValue(new Expr()))
+            ;
+
+        $queryMock->expects($this->once())
+            ->method('getResult')
+            ->will( $this->returnValue([]))
+            ;
+
+        $dt = new Builder( $emMock,
+            [
+              "search" => [ "value" => $searchStr ],
+              "columns" => [
+                   [ 'searchable' => true ],
+                ],
+            ] );
+
+        $dt
+            ->add( 'field1' )
+            ->from( 'Test:Table', 'a' )
+            ;
+
+        $this->assertEquals( $dt->getArray(), [] );
+    }
+
+    public function getAllORMTypes():array
+    {
+        $ret = [];
+        $reflectionClass = new \ReflectionClass(ORMType::class);
+        foreach( [ 'pdo_mysql', 'pdo_pgsql', 'oci8', 'pdo_oracle' ] as $driver ) {
+            foreach( $reflectionClass->getConstants() as $constant => $value ) {
+                array_push($ret, [ $value, 'stringVal', $driver ] );
+                array_push($ret, [ $value, '33', $driver ] );
+                array_push($ret, [ $value, '33.2', $driver ] );
+                array_push($ret, [ $value, '2017-01-01', $driver ] );
+            }
+        }
+
+        array_push($ret, [ ORMType::JSON_ARRAY, 'stringVal', 'pdo_mysql', "LOWER(a.field1) LIKE :ppp1"] );
+        array_push($ret, [ ORMType::JSON_ARRAY, 'stringVal', 'pdo_pgsql', false] );
+
+        return $ret;
+    }
 }
 // vim:sw=4 ts=4 sts=4 et
