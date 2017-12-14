@@ -540,10 +540,21 @@ class  Builder {
     }
 
     /**
-     * Retorna una expresión de filtro.
+     * Returns a filter expression
+     *
+     * @param string $columnName
+     * @param string $searchStr
+     * @param QueryBuilder $cb  Reference for add parameters
+     *
+     * @return string
+     *
+     * @throws LogicException
+     *
+     *
      */
     private function  getWhereFor( string $columnName, string  $searchStr, QueryBuilder $cb ):string
     {
+        // @TODO Generate an array with no searcheable column types
         $ct = $this->getColumnType( $columnName );
         if( in_array( $ct, [ ORMType::STRING, ORMType::TEXT, ORMType::SIMPLE_ARRAY, ORMType::JSON_ARRAY ] ) ) {
             $param = $this->createParameter( "%" . strtolower( $searchStr ). "%", $cb );
