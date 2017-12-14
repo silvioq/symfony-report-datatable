@@ -772,7 +772,7 @@ class  SearchTest  extends  TestCase
      * @covers Builder::getWhereFor()
      * @dataProvider getAllORMTypes
      */
-    public function testAllORMTypes($ormType, $searchStr, $driver, $expectedSearch = null )
+    public function testAllORMTypes($ormType, $searchStr, $driver, $expectedSearch = null)
     {
         $emMock  = $this->createMock('\Doctrine\ORM\EntityManager',
                array('getRepository', 'getClassMetadata'), array(), '', false);
@@ -885,6 +885,73 @@ class  SearchTest  extends  TestCase
         array_push($ret, [ ORMType::JSON_ARRAY, 'stringVal', 'pdo_pgsql', false] );
 
         return $ret;
+    }
+
+    /**
+     * @covers Builder::getWhereFor()
+     * @expectedException \LogicException
+     */
+    public function testInvalidORMType()
+    {
+        $emMock  = $this->createMock('\Doctrine\ORM\EntityManager',
+               array('getRepository', 'getClassMetadata'), array(), '', false);
+
+        (new \Silvioq\ReportBundle\Tests\MockBuilder\ConfigurationMockBuilder($this,$emMock))->configure();
+
+        $repoMock = $this->createMock( '\Doctrine\ORM\EntityRepository', ["createQueryBuilder"], array(), '', false );
+        $qbMock = $this->createMock( '\Doctrine\ORM\QueryBuilder', ["select", "getQuery", "andWhere",'expr'], array(), '', false );
+        $queryMock = $this->createMock( '\Doctrine\ORM\AbstractQuery', ['getResult'], array(), '', false );
+        $metadataMock = $this->createMock( '\Doctrine\ORM\Mapping\ClassMetadataInfo', ['getFieldNames','getTypeOfField'], array(), '', false );
+
+        $emMock->expects($this->once())
+            ->method('getRepository')
+            ->with($this->equalTo('Test:Table'))
+            ->will($this->returnValue($repoMock))
+            ;
+
+        $emMock->expects($this->once())
+            ->method('getClassMetadata')
+            ->with($this->equalTo('Test:Table'))
+            ->will($this->returnValue($metadataMock))
+            ;
+
+        $metadataMock->expects($this->at(1))
+            ->method('getTypeOfField')
+            ->with( $this->equalTo('field1'))
+            ->will( $this->returnValue('unknown_type'))
+            ;
+
+        $metadataMock->expects($this->once())
+            ->method('getFieldNames')
+            ->will( $this->returnValue(['field1']))
+            ;
+
+        $repoMock->expects($this->once())
+            ->method("createQueryBuilder")
+            ->with($this->equalTo('a'))
+            ->will($this->returnValue( $qbMock ) )
+            ;
+
+        $qbMock->expects($this->once())
+            ->method('select')
+            ->with($this->equalTo('a.field1'))
+            ->will($this->returnSelf() )
+            ;
+
+        $dt = new Builder( $emMock,
+            [
+              "search" => [ "value" => 'x' ],
+              "columns" => [
+                   [ 'searchable' => true ],
+                ],
+            ] );
+
+        $dt
+            ->add( 'field1' )
+            ->from( 'Test:Table', 'a' )
+            ;
+
+        $this->assertEquals( $dt->getArray(), [] );
     }
 }
 // vim:sw=4 ts=4 sts=4 et
