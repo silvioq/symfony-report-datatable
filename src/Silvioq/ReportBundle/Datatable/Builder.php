@@ -83,15 +83,8 @@ class  Builder {
     /** @var int|null */
     private  $filteredCount;
 
-    /**
-     * @var boolean
-     */
-    private $dateFormatFunc;
-
-    /**
-     * @var boolean
-     */
-    private $isPostgres = false;
+    /** @var WhereBuilder */
+    private $whereBuilder;
 
     function   __construct( EntityManagerInterface $em, array $get){
         $this->alias = 'a';
@@ -109,37 +102,7 @@ class  Builder {
         $this->columnTypes = null;
         $this->filteredCount = null;
 
-        /** @var boolean */
-        $this->dateFormatFunc = class_exists( "DoctrineExtensions\Query\Postgresql\DateFormat" );
-
-        /** @var string */
-        $driverName = $em->getConnection()->getDriver()->getName();
-        $this->isPostgres = 'pdo_pgsql' === $driverName;
-
-        if( $this->dateFormatFunc && $em->getConfiguration()->getCustomDatetimeFunction( 'DATE_FORMAT' ) === null )
-        {
-            switch ($driverName)
-            {
-                case 'pdo_pgsql':
-                    $em->getConfiguration()->addCustomDatetimeFunction( 'DATE_FORMAT', 
-                            "DoctrineExtensions\\Query\\Postgresql\\DateFormat" );
-                    break;
-
-                case 'pdo_mysql':
-                    $em->getConfiguration()->addCustomDatetimeFunction( 'DATE_FORMAT', 
-                            "DoctrineExtensions\\Query\\Mysql\\DateFormat" );
-                    break;
-
-                case 'pdo_oracle':
-                case 'oci8':
-                    $em->getConfiguration()->addCustomDatetimeFunction( 'DATE_FORMAT', 
-                            "DoctrineExtensions\\Query\\Postgresql\\DateFormat" );
-                    break;
-
-                default:
-                    $this->dateFormatFunc = false;
-            }
-        }
+        $this->whereBuilder = new WhereBuilder($this->_em);
     }
 
     /**
@@ -369,6 +332,10 @@ class  Builder {
                 ->select($select)
                 ;
 
+        $this->whereBuilder->setQueryBuilder($cb)
+            ->setColumnTypes($this->getColumnTypes())
+            ;
+
         foreach( $joins as $a => $j ){
             $cb->leftJoin( $j, $a);
         }
@@ -406,7 +373,7 @@ class  Builder {
                 if ( isset($get['columns'][$i])
                   && isset($get['columns'][$i]['searchable'] )
                   && false !== $get['columns'][$i]['searchable'] ){
-                    $filter = $this->getWhereFor( $oColumns[$i], $search, $cb );
+                    $filter = $this->whereBuilder->getWhereFor($oColumns[$i], $search);
                     if( '' !== $filter ) array_push( $aLike, $filter );
                 }
             }
@@ -427,33 +394,8 @@ class  Builder {
                 $val = $column['search']['value'];
 
                 /** @var string */
-                $filter = '';
+                $filter = $this->whereBuilder->getExpresiveWhere($oColumns[$i], $val);
 
-                if( $val === 'is null'){
-                    $filter = $cb->expr()->isNull( $oColumns[$i] );
-                } else if( $val === 'is not null' ){
-                    $filter = $cb->expr()->isNotNull( $oColumns[$i] );
-                } else if( preg_match( '/^not\s+in\s*\((.*)\)$/', $val, $matches ) ){
-                    $filter = $cb->expr()->notIn( $oColumns[$i], $matches[1] );
-                } else if( preg_match( '/^in\s*\((.*)\)$/', $val, $matches ) ){
-                    $lista = preg_split( "/,/", $matches[1] );
-                    $param = $this->createParameter( $lista, $cb );
-                    $filter = $cb->expr()->In( $oColumns[$i], $param );
-                } else if( $val === 'true' || $val === 'false' ){
-                    $filter = $cb->expr()->eq( $oColumns[$i], $val );
-                } else if( preg_match( '/^between\s+(.*)and(.*)$/', $val, $matches ) ) {
-                    $ct = $this->getColumnType( $oColumns[$i] );
-                    if( $this->dateFormatFunc && ( $ct == ORMType::DATE ||  $ct == ORMType::DATETIME ) )
-                        $filter = $cb->expr()->between( sprintf("DATE_FORMAT(%s,'YYYY-MM-DD')",$oColumns[$i]),
-                            $this->createParameter(trim($matches[1]), $cb ),
-                            $this->createParameter(trim($matches[2]), $cb ) );
-                    else
-                        $filter = $cb->expr()->between( $oColumns[$i],
-                            $this->createParameter(trim($matches[1]), $cb),
-                            $this->createParameter(trim($matches[2]), $cb));
-                } else{
-                    $filter = $this->getWhereFor( $oColumns[$i], $val, $cb );
-                }
                 if( '' !== $filter ) $cb->andWhere( $filter );
             }
         }
@@ -499,14 +441,16 @@ class  Builder {
 
     private function getColumnTypes( ):array
     {
-        if( $this->columnTypes !== null ) return $this->columnTypes;
+        if( $this->columnTypes !== null )
+            return $this->columnTypes;
+
         $md = $this->_em->getClassMetadata( $this->getRepo() );
         $alias = $this->getAlias();
         $ret = array();
         $fieldNames = $md->getFieldNames();
         foreach( $fieldNames as $field )
         {
-            $ret[$alias . "." . $field] = $md->getTypeOfField($field);
+            $ret[$field] = $ret[$alias . "." . $field] = $md->getTypeOfField($field);
         }
 
         foreach( $this->getJoins() as $a => $table )
@@ -520,130 +464,6 @@ class  Builder {
             }
         }
         return  $this->columnTypes = $ret;
-    }
-
-    private function  getColumnType( $column ):string
-    {
-        if( strpos( $column, '.' ) === false ) return $this->getColumnType( $this->getAlias() . '.' . $column );
-        $ct = $this->getColumnTypes();
-        if( isset( $ct[$column] ) ) return $ct[$column]; else return "unknonw";
-    }
-
-    /**
-     * TODO: Este código debe ir a una clase aparte
-     */
-    private  $parameterCount = 0;
-    private  $parameterList  = array();
-    private function  createParameter( $str, QueryBuilder $cb ):string
-    {
-        $hash = md5( is_array($str) ? join(',', $str) : $str );
-        if( isset( $this->parameterList[$hash]) )
-        {
-            $param = $this->parameterList[$hash];
-        }
-        else
-        {
-            $this->parameterCount ++;
-            $param = 'ppp' . $this->parameterCount;
-            $this->parameterList[$hash] = $param;
-        }
-        if( !$cb->getParameter( $param ) ) $cb->setParameter( $param, $str );
-        return  ':' . $param;
-    }
-
-    const NOT_SEARCHABLE_COLUMN_TYPES = [
-        ORMType::BOOLEAN,
-        ORMType::DATEINTERVAL,
-        ORMType::BINARY,
-        ORMType::BLOB,
-        ORMType::OBJECT,
-        ORMType::TARRAY,
-    ];
-
-    const DATETIME_COLUMN_TYPES = [
-        ORMType::DATE,
-        ORMType::DATE_IMMUTABLE,
-        ORMType::DATETIME,
-        ORMType::DATETIME_IMMUTABLE,
-        ORMType::DATETIMETZ,
-        ORMType::DATETIMETZ_IMMUTABLE,
-    ];
-
-    const TIME_COLUMN_TYPES = [
-        ORMType::TIME,
-        ORMType::TIME_IMMUTABLE,
-    ];
-
-    /**
-     * Returns a filter expression
-     *
-     * @param string $columnName
-     * @param string $searchStr
-     * @param QueryBuilder $cb  Reference for add parameters
-     *
-     * @return string
-     *
-     * @throws LogicException
-     *
-     */
-    private function  getWhereFor( string $columnName, string  $searchStr, QueryBuilder $cb ):string
-    {
-        // TODO Generate an array with no searcheable column types
-        $ct = $this->getColumnType( $columnName );
-
-        if( in_array( $ct, [ ORMType::STRING, ORMType::TEXT, ORMType::SIMPLE_ARRAY, ORMType::GUID ] ) ) {
-            $param = $this->createParameter( "%" . strtolower( $searchStr ). "%", $cb );
-            return  $cb->expr()->like( sprintf('LOWER(%s)',$columnName), $param );
-
-        } else if( ORMType::JSON_ARRAY === $ct || ORMType::JSON === $ct ) {
-            if( $this->isPostgres )
-                return  ''; // TODO write proper condition
-            else
-            {
-                $param = $this->createParameter( "%" . strtolower( $searchStr ). "%", $cb );
-                return  $cb->expr()->like( sprintf('LOWER(%s)',$columnName), $param );
-            }
-        }
-        elseif( in_array( $ct, array( ORMType::INTEGER, ORMType::SMALLINT, ORMType::BIGINT, ORMType::DECIMAL, ORMType::FLOAT ) ) )
-        {
-            if( is_numeric( $searchStr ) )
-                return $cb->expr()->eq( $columnName, $searchStr );
-            else
-                return '';
-        }
-
-        /** @var bool */
-        $isDate = in_array($ct, self::DATETIME_COLUMN_TYPES, true );
-        if( $this->dateFormatFunc && $isDate )
-        {
-            $param = $this->createParameter( "%" . strtolower( $searchStr ). "%", $cb );
-            $fecha = $this->createParameter( 'YYYY-MM-DD', $cb );
-            return  $cb->expr()->like( sprintf( 'DATE_FORMAT(%s,%s)', $columnName, $fecha ) , $param);
-        }
-        elseif( $isDate )
-        {
-            $param = $this->createParameter( "%" . strtolower( $searchStr ). "%", $cb );
-            return  $cb->expr()->like( $columnName, $param );
-        }
-
-        /** @var bool */
-        $isTime = in_array($ct, self::TIME_COLUMN_TYPES, true );
-        if( $this->dateFormatFunc && $isTime ) {
-            $param = $this->createParameter( "%" . strtolower( $searchStr ). "%", $cb );
-            $fecha = $this->createParameter( 'HH:MI:SS', $cb );
-            return  $cb->expr()->like( sprintf( 'DATE_FORMAT(%s,%s)', $columnName, $fecha ) , $param);
-        }
-        elseif( $isTime )
-        {
-            $param = $this->createParameter( "%" . strtolower( $searchStr ). "%", $cb );
-            return  $cb->expr()->like( $columnName, $param );
-        }
-
-        if( in_array( $ct, self::NOT_SEARCHABLE_COLUMN_TYPES, true ) )
-            return '';
-
-        throw new \LogicException( sprintf( "Can't generate where expression for column %s, search string %s",
-                    $columnName, $searchStr ) );
     }
 
     /**
@@ -667,7 +487,7 @@ class  Builder {
                 if( isset( $this->filter[$colName] ) ){
                     $data = $this->filter[$colName]( $row );
                     $xrow[$colName] = $data;
-                } else if( $row[$colName] && $this->getColumnType( $colName ) ===  ORMType::TIME )
+                } else if( $row[$colName] instanceof \DateTime && $this->getColumnTypes()[$colName] ===  ORMType::TIME )
                 {
                     $xrow[$colName] = $row[$colName]->format( 'H:i' );
                 } else if( $row[$colName] instanceof \DateTime ){

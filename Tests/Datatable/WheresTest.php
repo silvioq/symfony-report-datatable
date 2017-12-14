@@ -19,7 +19,8 @@ class  WheresTest  extends  TestCase
         $emMock  = $this->createMock('\Doctrine\ORM\EntityManager',
                array('getRepository', 'getClassMetadata', 'persist', 'flush'), array(), '', false);
 
-        (new \Silvioq\ReportBundle\Tests\MockBuilder\ConfigurationMockBuilder($this,$emMock))->configure();
+        (new \Silvioq\ReportBundle\Tests\MockBuilder\ConfigurationMockBuilder($this,$emMock))
+            ->configure()->withMetadata();
 
         $repoMock = $this->createMock( '\Doctrine\ORM\EntityRepository', ["createQueryBuilder"], array(), '', false );
         $qbMock = $this->createMock( '\Doctrine\ORM\QueryBuilder', ["select", "getQuery", "andWhere"], array(), '', false );
@@ -85,7 +86,8 @@ class  WheresTest  extends  TestCase
         $qbMock = $this->createMock( QueryBuilder::class, ["select", "getQuery", "andWhere"], array(), '', false );
         $queryMock = $this->createMock( '\Doctrine\ORM\AbstractQuery', ['getResult'], array(), '', false );
 
-        (new \Silvioq\ReportBundle\Tests\MockBuilder\ConfigurationMockBuilder($this,$emMock))->configure();
+        (new \Silvioq\ReportBundle\Tests\MockBuilder\ConfigurationMockBuilder($this,$emMock))
+            ->configure()->withMetadata();
 
         $emMock->expects($this->once())
             ->method('getRepository')
@@ -152,7 +154,8 @@ class  WheresTest  extends  TestCase
         $emMock  = $this->createMock('\Doctrine\ORM\EntityManager',
                array('getRepository', 'getClassMetadata', 'persist', 'flush'), array(), '', false);
 
-        (new \Silvioq\ReportBundle\Tests\MockBuilder\ConfigurationMockBuilder($this,$emMock))->configure();
+        (new \Silvioq\ReportBundle\Tests\MockBuilder\ConfigurationMockBuilder($this,$emMock))
+            ->configure()->withMetadata();
 
         $repoMock = $this->createMock( '\Doctrine\ORM\EntityRepository', ["createQueryBuilder"], array(), '', false );
         $qbMock = $this->createMock( QueryBuilder::class, ["select", "getQuery", "andWhere", "leftJoin"], array(), '', false );
@@ -292,7 +295,9 @@ class  WheresTest  extends  TestCase
     {
         $emMock  = $this->createMock('\Doctrine\ORM\EntityManager',
                array('getRepository', 'getClassMetadata', 'persist', 'flush'), array(), '', false);
-        (new \Silvioq\ReportBundle\Tests\MockBuilder\ConfigurationMockBuilder($this,$emMock))->configure();
+
+        (new \Silvioq\ReportBundle\Tests\MockBuilder\ConfigurationMockBuilder($this,$emMock))
+            ->configure()->withMetadata();
 
         $repoMock = $this->createMock( '\Doctrine\ORM\EntityRepository', ["createQueryBuilder"], array(), '', false );
         $qbMock = $this->createMock( '\Doctrine\ORM\QueryBuilder', ["select", "getQuery", "andWhere", 'setMaxResults'], array(), '', false );
@@ -309,7 +314,7 @@ class  WheresTest  extends  TestCase
             ->with($this->equalTo('a'))
             ->will($this->returnValue( $qbMock ) )
             ;
-            
+
         $qbMock->expects($this->once())
             ->method('select')
             ->will($this->returnSelf() )
@@ -320,7 +325,7 @@ class  WheresTest  extends  TestCase
             ->with($this->equalTo( '1') )
             ->will($this->returnSelf())
             ;
-            
+
         $qbMock->expects($this->once())
             ->method('getQuery')
             ->will( $this->returnValue($queryMock) )
@@ -359,6 +364,68 @@ class  WheresTest  extends  TestCase
     public function whereFunctions()
     {
         return[ ["where"], ["condition"] ];
+    }
+
+    /**
+     * @expectedException \LogicException
+     */
+    public function testInvalidColumnOnGlobalSearch()
+    {
+        $emMock  = $this->createMock('\Doctrine\ORM\EntityManager',
+               array('getRepository', 'getClassMetadata'), array(), '', false);
+        (new \Silvioq\ReportBundle\Tests\MockBuilder\ConfigurationMockBuilder($this,$emMock))->configure();
+        $repoMock = $this->createMock( '\Doctrine\ORM\EntityRepository', ["createQueryBuilder"], array(), '', false );
+        $qbMock = $this->createMock( '\Doctrine\ORM\QueryBuilder', ["select", "getQuery", "andWhere",'expr'], array(), '', false );
+        $queryMock = $this->createMock( '\Doctrine\ORM\AbstractQuery', ['getResult'], array(), '', false );
+        $metadataMock = $this->createMock( '\Doctrine\ORM\Mapping\ClassMetadataInfo', ['getFieldNames','getTypeOfField'], array(), '', false );
+
+        $emMock->expects($this->once())
+            ->method('getRepository')
+            ->with($this->equalTo('Test:Table'))
+            ->will($this->returnValue($repoMock))
+            ;
+
+        $metadataMock->expects($this->once())
+            ->method('getFieldNames')
+            ->will( $this->returnValue(['field1','field2']))
+            ;
+
+        $emMock->expects($this->once())
+            ->method('getClassMetadata')
+            ->with($this->equalTo('Test:Table'))
+            ->will($this->returnValue($metadataMock))
+            ;
+
+        $repoMock->expects($this->once())
+            ->method("createQueryBuilder")
+            ->with($this->equalTo('a'))
+            ->will($this->returnValue( $qbMock ) )
+            ;
+
+        $qbMock->expects($this->once())
+            ->method('select')
+            ->with($this->equalTo('a.field1, a.field2, a.field3'))
+            ->will($this->returnSelf() )
+            ;
+
+        $dt = new Builder( $emMock,
+            [
+              "search" => [ "value" => "x" ],
+              "columns" => [
+                   [ 'searchable' => true ],
+                   [ 'searchable' => true ],
+                   [ 'searchable' => true ],
+                ],
+            ] );
+
+        $dt
+            ->add( 'field1' )
+            ->add( 'field2' )
+            ->add( 'field3' )
+            ->from( 'Test:Table', 'a' )
+            ;
+
+        $this->assertEquals( $dt->getArray(), [] );
     }
 
 

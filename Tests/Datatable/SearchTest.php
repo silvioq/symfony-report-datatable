@@ -15,7 +15,9 @@ class  SearchTest  extends  TestCase
         $emMock  = $this->createMock('\Doctrine\ORM\EntityManager',
                array('getRepository', 'getClassMetadata'), array(), '', false);
 
-        (new \Silvioq\ReportBundle\Tests\MockBuilder\ConfigurationMockBuilder($this,$emMock,'pdo_mysql'))->configure();
+        (new \Silvioq\ReportBundle\Tests\MockBuilder\ConfigurationMockBuilder($this,$emMock,'pdo_mysql'))
+            ->configure();
+
 
         $repoMock = $this->createMock( '\Doctrine\ORM\EntityRepository', ["createQueryBuilder"], array(), '', false );
         $qbMock = $this->createMock( '\Doctrine\ORM\QueryBuilder', ["select", "getQuery", "andWhere",'expr'], array(), '', false );
@@ -333,21 +335,18 @@ class  SearchTest  extends  TestCase
     {
         $emMock  = $this->createMock('\Doctrine\ORM\EntityManager',
                array('getRepository', 'getClassMetadata'), array(), '', false);
-        (new \Silvioq\ReportBundle\Tests\MockBuilder\ConfigurationMockBuilder($this,$emMock))->configure();
+
+        (new \Silvioq\ReportBundle\Tests\MockBuilder\ConfigurationMockBuilder($this,$emMock))
+            ->configure()->withMetadata();
+
         $repoMock = $this->createMock( '\Doctrine\ORM\EntityRepository', ["createQueryBuilder"], array(), '', false );
         $qbMock = $this->createMock( '\Doctrine\ORM\QueryBuilder', ["select", "getQuery", "andWhere",'expr'], array(), '', false );
         $queryMock = $this->createMock( '\Doctrine\ORM\AbstractQuery', ['getResult'], array(), '', false );
-        $metadataMock = $this->createMock( '\Doctrine\ORM\Mapping\ClassMetadataInfo', ['getFieldNames','getTypeOfField'], array(), '', false );
 
         $emMock->expects($this->once())
             ->method('getRepository')
             ->with($this->equalTo('Test:Table'))
             ->will($this->returnValue($repoMock))
-            ;
-
-        $metadataMock->expects($this->never())
-            ->method('getFieldNames')
-            ->will( $this->returnValue(['field1','field2']))
             ;
 
         $repoMock->expects($this->once())
@@ -421,16 +420,20 @@ class  SearchTest  extends  TestCase
             ->will($this->returnValue($repoMock))
             ;
 
-        $metadataMock->expects($this->never())
+        $metadataMock->expects($this->once())
             ->method('getFieldNames')
             ->will( $this->returnValue(['field1','field2']))
             ;
-
 
         $repoMock->expects($this->once())
             ->method("createQueryBuilder")
             ->with($this->equalTo('a'))
             ->will($this->returnValue( $qbMock ) )
+            ;
+
+        $emMock->expects($this->once())
+            ->method('getClassMetadata')
+            ->will($this->returnValue($metadataMock))
             ;
 
         $qbMock->expects($this->once())
@@ -576,7 +579,6 @@ class  SearchTest  extends  TestCase
             ;
 
         $this->assertEquals( $dt->getArray(), [] );
-
     }
 
     public  function  testSearchBetweenStrings()
@@ -597,7 +599,17 @@ class  SearchTest  extends  TestCase
 
         $metadataMock->expects($this->once())
             ->method('getFieldNames')
-            ->will( $this->returnValue(['field1','field2']))
+            ->will($this->returnValue(['field1','field2']))
+            ;
+
+        $metadataMock->expects($this->exactly(2))
+            ->method('getTypeOfField')
+            ->will( $this->returnValue(ORMType::STRING))
+            ;
+
+        $emMock->expects($this->once())
+            ->method('getClassMetadata')
+            ->will($this->returnValue($metadataMock))
             ;
 
         $emMock->expects($this->once())
@@ -948,6 +960,68 @@ class  SearchTest  extends  TestCase
 
         $dt
             ->add( 'field1' )
+            ->from( 'Test:Table', 'a' )
+            ;
+
+        $this->assertEquals( $dt->getArray(), [] );
+    }
+
+    /**
+     * @expectedException \LogicException
+     */
+    public function testInvalidColumn()
+    {
+        $emMock  = $this->createMock('\Doctrine\ORM\EntityManager',
+               array('getRepository', 'getClassMetadata'), array(), '', false);
+        (new \Silvioq\ReportBundle\Tests\MockBuilder\ConfigurationMockBuilder($this,$emMock))->configure();
+        $repoMock = $this->createMock( '\Doctrine\ORM\EntityRepository', ["createQueryBuilder"], array(), '', false );
+        $qbMock = $this->createMock( '\Doctrine\ORM\QueryBuilder', ["select", "getQuery", "andWhere",'expr'], array(), '', false );
+        $queryMock = $this->createMock( '\Doctrine\ORM\AbstractQuery', ['getResult'], array(), '', false );
+        $metadataMock = $this->createMock( '\Doctrine\ORM\Mapping\ClassMetadataInfo', ['getFieldNames','getTypeOfField'], array(), '', false );
+
+        $emMock->expects($this->once())
+            ->method('getRepository')
+            ->with($this->equalTo('Test:Table'))
+            ->will($this->returnValue($repoMock))
+            ;
+
+        $metadataMock->expects($this->once())
+            ->method('getFieldNames')
+            ->will( $this->returnValue(['field1','field2']))
+            ;
+
+        $emMock->expects($this->once())
+            ->method('getClassMetadata')
+            ->with($this->equalTo('Test:Table'))
+            ->will($this->returnValue($metadataMock))
+            ;
+
+        $repoMock->expects($this->once())
+            ->method("createQueryBuilder")
+            ->with($this->equalTo('a'))
+            ->will($this->returnValue( $qbMock ) )
+            ;
+
+        $qbMock->expects($this->once())
+            ->method('select')
+            ->with($this->equalTo('a.field1, a.field2, a.field3'))
+            ->will($this->returnSelf() )
+            ;
+
+        $dt = new Builder( $emMock,
+            [
+              "search" => [ "value" => "" ],
+              "columns" => [
+                   [ 'searchable' => true ],
+                   [ 'searchable' => true ],
+                   [ 'searchable' => true, 'search' => [ 'value' => 'x' ] ],
+                ],
+            ] );
+
+        $dt
+            ->add( 'field1' )
+            ->add( 'field2' )
+            ->add( 'field3' )
             ->from( 'Test:Table', 'a' )
             ;
 

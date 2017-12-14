@@ -36,11 +36,8 @@ class ConfigurationMockBuilder
         return class_exists( "DoctrineExtensions\\Query\\Postgresql\\DateFormat" );
     }
 
-    public function configure()
+    public function configure():self
     {
-        if( !self::doctrineExtensionsEnabled() )
-            return;
-
         /* @var Configuration */
         $confMock = $this->test
                 ->getMockBuilder(Configuration::class)
@@ -53,15 +50,17 @@ class ConfigurationMockBuilder
                 ->disableOriginalConstructor()
                 ->getMock();
 
-        /* @var Driver */
+        /** @var Driver */
         $dMock = $this->test
                 ->getMockBuilder(Driver::class)
                 ->disableOriginalConstructor()
                 ->getMock();
 
-        $this->emMock->expects($this->test->exactly(2))
-            ->method('getConfiguration')
-            ->will($this->test->returnValue($confMock));
+        if( self::doctrineExtensionsEnabled() ) {
+            $this->emMock->expects($this->test->exactly(2))
+                ->method('getConfiguration')
+                ->will($this->test->returnValue($confMock));
+        }
 
         $this->emMock->expects($this->test->once())
             ->method('getConnection')
@@ -76,6 +75,28 @@ class ConfigurationMockBuilder
             ->method('getName')
             ->willReturn($this->driver);
 
+        return $this;
+
+    }
+
+    public function withMetadata():self
+    {
+        /** @var \Doctrine\ORM\Mapping\ClassMetadataInfo */
+        $metadataMock = $this->test
+              ->getMockBuilder('\Doctrine\ORM\Mapping\ClassMetadataInfo')
+              ->disableOriginalConstructor()
+              ->getMock();
+
+        $metadataMock->expects($this->test->any())
+            ->method('getFieldNames')
+            ->willReturn([]);
+
+        $this->emMock->expects($this->test->any())
+            ->method('getClassMetadata')
+            ->will($this->test->returnValue($metadataMock))
+            ;
+
+        return $this;
     }
 }
 // vim:sw=4 ts=4 sts=4 et

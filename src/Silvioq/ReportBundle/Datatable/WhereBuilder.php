@@ -1,0 +1,252 @@
+<?php
+
+namespace   Silvioq\ReportBundle\Datatable;
+
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\QueryBuilder;
+use Doctrine\DBAL\Types\Type as ORMType;
+
+class WhereBuilder
+{
+    const NOT_SEARCHABLE_COLUMN_TYPES = [
+        ORMType::BOOLEAN,
+        ORMType::DATEINTERVAL,
+        ORMType::BINARY,
+        ORMType::BLOB,
+        ORMType::OBJECT,
+        ORMType::TARRAY,
+    ];
+
+    const DATETIME_COLUMN_TYPES = [
+        ORMType::DATE,
+        ORMType::DATE_IMMUTABLE,
+        ORMType::DATETIME,
+        ORMType::DATETIME_IMMUTABLE,
+        ORMType::DATETIMETZ,
+        ORMType::DATETIMETZ_IMMUTABLE,
+    ];
+
+    const TIME_COLUMN_TYPES = [
+        ORMType::TIME,
+        ORMType::TIME_IMMUTABLE,
+    ];
+
+    /**
+     * @var int
+     */
+    private $parameterCount = 0;
+
+    /**
+     * @var array
+     */
+    private $parameterList  = array();
+
+    /**
+     * @var array
+     */
+    private $columnTypes;
+
+    /**
+     * @var QueryBuilder|null
+     */
+    private $qb;
+
+    /**
+     * @var boolean
+     */
+    private $dateFormatFunc = false;
+
+    /**
+     * @var boolean
+     */
+    private $isPostgres = false;
+
+    public function  __construct(EntityManagerInterface $em)
+    {
+        /** @var boolean */
+        $this->dateFormatFunc = class_exists( "DoctrineExtensions\Query\Postgresql\DateFormat" );
+
+        /** @var string */
+        $driverName = $em->getConnection()->getDriver()->getName();
+        $this->isPostgres = 'pdo_pgsql' === $driverName;
+
+        if( $this->dateFormatFunc && $em->getConfiguration()->getCustomDatetimeFunction( 'DATE_FORMAT' ) === null )
+        {
+            switch ($driverName)
+            {
+                case 'pdo_pgsql':
+                    $em->getConfiguration()->addCustomDatetimeFunction( 'DATE_FORMAT', 
+                            "DoctrineExtensions\\Query\\Postgresql\\DateFormat" );
+                    break;
+
+                case 'pdo_mysql':
+                    $em->getConfiguration()->addCustomDatetimeFunction( 'DATE_FORMAT', 
+                            "DoctrineExtensions\\Query\\Mysql\\DateFormat" );
+                    break;
+
+                case 'pdo_oracle':
+                case 'oci8':
+                    $em->getConfiguration()->addCustomDatetimeFunction( 'DATE_FORMAT', 
+                            "DoctrineExtensions\\Query\\Postgresql\\DateFormat" );
+                    break;
+
+                default:
+                    $this->dateFormatFunc = false;
+            }
+        }
+    }
+
+    public function setColumnTypes(array $cts):self
+    {
+        $this->columnTypes = $cts;
+
+        return $this;
+    }
+
+    private function getColumnType($columnName):string
+    {
+        if( strpos( $columnName, '.' ) === false )
+            throw new \LogicException(sprintf('Column %s has not alias', $columnName));
+
+        if( isset( $this->columnTypes[$columnName] ) )
+            return $this->columnTypes[$columnName];
+
+        throw new \LogicException( sprintf( 'Column %s does not exists', $columnName ) );
+    }
+
+    /**
+     * @param QueryBuilder $qb
+     */
+    public function setQueryBuilder(QueryBuilder $qb):self
+    {
+        $this->qb = $qb;
+        $this->parameterCount = 0;
+        $this->parameterList = [];
+
+        return $this;
+    }
+
+    public function  createParameter($str):string
+    {
+        if( null === $this->qb )
+            throw new \LogicException( 'Must call setQueryBuilder before' );
+
+        $hash = md5( is_array($str) ? join(',', $str) : $str );
+        if( isset( $this->parameterList[$hash]) )
+        {
+            $param = $this->parameterList[$hash];
+        }
+        else
+        {
+            $this->parameterCount ++;
+            $param = 'ppp' . $this->parameterCount;
+            $this->parameterList[$hash] = $param;
+        }
+        if( !$this->qb->getParameter( $param ) ) $this->qb->setParameter( $param, $str );
+        return  ':' . $param;
+    }
+
+    /**
+     * Returns a filter expression
+     *
+     * @param string $columnName
+     * @param string $searchStr
+     *
+     * @return string
+     *
+     * @throws LogicException
+     *
+     */
+    public function  getWhereFor( string $columnName, string  $searchStr):string
+    {
+        if( null === $this->qb )
+            throw new \LogicException( 'Must call setQueryBuilder before' );
+
+        $ct = $this->getColumnType( $columnName );
+
+        if( in_array( $ct, [ ORMType::STRING, ORMType::TEXT, ORMType::SIMPLE_ARRAY, ORMType::GUID ] ) ) {
+            $param = $this->createParameter( "%" . strtolower( $searchStr ). "%");
+            return  $this->qb->expr()->like( sprintf('LOWER(%s)',$columnName), $param );
+
+        } else if( ORMType::JSON_ARRAY === $ct || ORMType::JSON === $ct ) {
+            if( $this->isPostgres )
+                return  ''; // TODO write proper condition
+            else
+            {
+                $param = $this->createParameter( "%" . strtolower( $searchStr ). "%");
+                return  $this->qb->expr()->like( sprintf('LOWER(%s)',$columnName), $param );
+            }
+        }
+        elseif( in_array( $ct, array( ORMType::INTEGER, ORMType::SMALLINT, ORMType::BIGINT, ORMType::DECIMAL, ORMType::FLOAT ) ) )
+        {
+            if( is_numeric( $searchStr ) )
+                return $this->qb->expr()->eq( $columnName, $searchStr );
+            else
+                return '';
+        }
+
+        /** @var bool */
+        $isDate = in_array($ct, self::DATETIME_COLUMN_TYPES, true );
+        if( $this->dateFormatFunc && $isDate )
+        {
+            $param = $this->createParameter( "%" . strtolower( $searchStr ). "%" );
+            $fecha = $this->createParameter( 'YYYY-MM-DD' );
+            return  $this->qb->expr()->like( sprintf( 'DATE_FORMAT(%s,%s)', $columnName, $fecha ) , $param);
+        }
+        elseif( $isDate )
+        {
+            $param = $this->createParameter( "%" . strtolower( $searchStr ). "%");
+            return  $this->qb->expr()->like( $columnName, $param );
+        }
+
+        /** @var bool */
+        $isTime = in_array($ct, self::TIME_COLUMN_TYPES, true );
+        if( $this->dateFormatFunc && $isTime ) {
+            $param = $this->createParameter( "%" . strtolower( $searchStr ). "%" );
+            $fecha = $this->createParameter( 'HH:MI:SS' );
+            return  $this->qb->expr()->like( sprintf( 'DATE_FORMAT(%s,%s)', $columnName, $fecha ) , $param);
+        }
+        elseif( $isTime )
+        {
+            $param = $this->createParameter( "%" . strtolower( $searchStr ). "%" );
+            return  $this->qb->expr()->like( $columnName, $param );
+        }
+
+        if( in_array( $ct, self::NOT_SEARCHABLE_COLUMN_TYPES, true ) )
+            return '';
+
+        throw new \LogicException( sprintf( "Can't generate where expression for column %s, search string %s",
+                    $columnName, $searchStr ) );
+    }
+
+    public function getExpresiveWhere($columnName, $searchStr)
+    {
+        if( $searchStr === 'is null'){
+            $filter = $this->qb->expr()->isNull( $columnName );
+        } else if( $searchStr === 'is not null' ){
+            $filter = $this->qb->expr()->isNotNull( $columnName );
+        } else if( preg_match( '/^not\s+in\s*\((.*)\)$/', $searchStr, $matches ) ){
+            $filter = $this->qb->expr()->notIn( $columnName, $matches[1] );
+        } else if( preg_match( '/^in\s*\((.*)\)$/', $searchStr, $matches ) ){
+            $lista = preg_split( "/,/", $matches[1] );
+            $param = $this->createParameter($lista);
+            $filter = $this->qb->expr()->In( $columnName, $param );
+        } else if( $searchStr === 'true' || $searchStr === 'false' ){
+            $filter = $this->qb->expr()->eq( $columnName, $searchStr );
+        } else if( preg_match( '/^between\s+(.*)and(.*)$/', $searchStr, $matches ) ) {
+            $ct = $this->getColumnType( $columnName );
+            if( $this->dateFormatFunc && ( $ct == ORMType::DATE ||  $ct == ORMType::DATETIME ) )
+                $filter = $this->qb->expr()->between( sprintf("DATE_FORMAT(%s,'YYYY-MM-DD')",$columnName),
+                    $this->createParameter(trim($matches[1]) ),
+                    $this->createParameter(trim($matches[2]) ) );
+            else
+                $filter = $this->qb->expr()->between( $columnName,
+                    $this->createParameter(trim($matches[1])),
+                    $this->createParameter(trim($matches[2])));
+        } else{
+            $filter = $this->getWhereFor( $columnName, $searchStr );
+        }
+        return $filter;
+    }
+}
+// vim:sw=4 ts=4 sts=4 et
