@@ -562,17 +562,41 @@ class  Builder {
      *
      * @throws LogicException
      *
-     *
      */
+
+    const NOT_SEARCHABLE_COLUMN_TYPES = [
+        ORMType::BOOLEAN,
+        ORMType::DATEINTERVAL,
+        ORMType::BINARY,
+        ORMType::BLOB,
+        ORMType::OBJECT,
+        ORMType::TARRAY,
+    ];
+
+    const DATETIME_COLUMN_TYPES = [
+        ORMType::DATE,
+        ORMType::DATE_IMMUTABLE,
+        ORMType::DATETIME,
+        ORMType::DATETIME_IMMUTABLE,
+        ORMType::DATETIMETZ,
+        ORMType::DATETIMETZ_IMMUTABLE,
+    ];
+
+    const TIME_COLUMN_TYPES = [
+        ORMType::TIME,
+        ORMType::TIME_IMMUTABLE,
+    ];
+
     private function  getWhereFor( string $columnName, string  $searchStr, QueryBuilder $cb ):string
     {
         // TODO Generate an array with no searcheable column types
         $ct = $this->getColumnType( $columnName );
-        if( in_array( $ct, [ ORMType::STRING, ORMType::TEXT, ORMType::SIMPLE_ARRAY ] ) ) {
+
+        if( in_array( $ct, [ ORMType::STRING, ORMType::TEXT, ORMType::SIMPLE_ARRAY, ORMType::GUID ] ) ) {
             $param = $this->createParameter( "%" . strtolower( $searchStr ). "%", $cb );
             return  $cb->expr()->like( sprintf('LOWER(%s)',$columnName), $param );
 
-        } else if( ORMType::JSON_ARRAY === $ct ) {
+        } else if( ORMType::JSON_ARRAY === $ct || ORMType::JSON === $ct ) {
             $param = $this->createParameter( "%" . strtolower( $searchStr ). "%", $cb );
             if( $this->isPostgres )
                 return  ''; // TODO write proper condition
@@ -586,18 +610,35 @@ class  Builder {
             else
                 return '';
         }
-        elseif( $this->dateFormatFunc && ( $ct == ORMType::DATE ||  $ct == ORMType::DATETIME ) )
+
+        /** @var bool */
+        $isDate = in_array($ct, self::DATETIME_COLUMN_TYPES, true );
+        if( $this->dateFormatFunc && $isDate )
         {
             $param = $this->createParameter( "%" . strtolower( $searchStr ). "%", $cb );
             $fecha = $this->createParameter( 'YYYY-MM-DD', $cb );
             return  $cb->expr()->like( sprintf( 'DATE_FORMAT(%s,%s)', $columnName, $fecha ) , $param);
         }
-        elseif( $ct == ORMType::DATE ||  $ct == ORMType::DATETIME )
+        elseif( $isDate )
         {
             $param = $this->createParameter( "%" . strtolower( $searchStr ). "%", $cb );
             return  $cb->expr()->like( $columnName, $param );
         }
-        elseif( ORMType::BOOLEAN === $ct )
+
+        /** @var bool */
+        $isTime = in_array($ct, self::TIME_COLUMN_TYPES, true );
+        if( $this->dateFormatFunc && $isTime ) {
+            $param = $this->createParameter( "%" . strtolower( $searchStr ). "%", $cb );
+            $fecha = $this->createParameter( 'HH:MI:SS', $cb );
+            return  $cb->expr()->like( sprintf( 'DATE_FORMAT(%s,%s)', $columnName, $fecha ) , $param);
+        }
+        elseif( $isTime )
+        {
+            $param = $this->createParameter( "%" . strtolower( $searchStr ). "%", $cb );
+            return  $cb->expr()->like( $columnName, $param );
+        }
+
+        if( in_array( $ct, self::NOT_SEARCHABLE_COLUMN_TYPES, true ) )
             return '';
 
         throw new \LogicException( sprintf( "Can't generate where expression for column %s, search string %s",
