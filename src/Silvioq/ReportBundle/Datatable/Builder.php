@@ -597,11 +597,13 @@ class  Builder {
             return  $cb->expr()->like( sprintf('LOWER(%s)',$columnName), $param );
 
         } else if( ORMType::JSON_ARRAY === $ct || ORMType::JSON === $ct ) {
-            $param = $this->createParameter( "%" . strtolower( $searchStr ). "%", $cb );
             if( $this->isPostgres )
                 return  ''; // TODO write proper condition
             else
+            {
+                $param = $this->createParameter( "%" . strtolower( $searchStr ). "%", $cb );
                 return  $cb->expr()->like( sprintf('LOWER(%s)',$columnName), $param );
+            }
         }
         elseif( in_array( $ct, array( ORMType::INTEGER, ORMType::SMALLINT, ORMType::BIGINT, ORMType::DECIMAL, ORMType::FLOAT ) ) )
         {
