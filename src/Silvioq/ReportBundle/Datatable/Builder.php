@@ -88,6 +88,11 @@ class  Builder {
      */
     private $dateFormatFunc;
 
+    /**
+     * @var boolean
+     */
+    private $isPostgres = false;
+
     function   __construct( EntityManagerInterface $em, array $get){
         $this->alias = 'a';
         $this->joins = array();
@@ -107,9 +112,13 @@ class  Builder {
         /** @var boolean */
         $this->dateFormatFunc = class_exists( "DoctrineExtensions\Query\Postgresql\DateFormat" );
 
+        /** @var string */
+        $driverName = $em->getConnection()->getDriver()->getName();
+        $this->isPostgres = 'pdo_pgsql' === $driverName;
+
         if( $this->dateFormatFunc && $em->getConfiguration()->getCustomDatetimeFunction( 'DATE_FORMAT' ) === null )
         {
-            switch($em->getConnection()->getDriver()->getName() )
+            switch ($driverName)
             {
                 case 'pdo_pgsql':
                     $em->getConfiguration()->addCustomDatetimeFunction( 'DATE_FORMAT', 
@@ -557,11 +566,18 @@ class  Builder {
      */
     private function  getWhereFor( string $columnName, string  $searchStr, QueryBuilder $cb ):string
     {
-        // @TODO Generate an array with no searcheable column types
+        // TODO Generate an array with no searcheable column types
         $ct = $this->getColumnType( $columnName );
-        if( in_array( $ct, [ ORMType::STRING, ORMType::TEXT, ORMType::SIMPLE_ARRAY, ORMType::JSON_ARRAY ] ) ) {
+        if( in_array( $ct, [ ORMType::STRING, ORMType::TEXT, ORMType::SIMPLE_ARRAY ] ) ) {
             $param = $this->createParameter( "%" . strtolower( $searchStr ). "%", $cb );
             return  $cb->expr()->like( sprintf('LOWER(%s)',$columnName), $param );
+
+        } else if( ORMType::JSON_ARRAY === $ct ) {
+            $param = $this->createParameter( "%" . strtolower( $searchStr ). "%", $cb );
+            if( $this->isPostgres )
+                return  ''; // TODO write proper condition
+            else
+                return  $cb->expr()->like( sprintf('LOWER(%s)',$columnName), $param );
         }
         elseif( in_array( $ct, array( ORMType::INTEGER, ORMType::SMALLINT, ORMType::BIGINT, ORMType::DECIMAL, ORMType::FLOAT ) ) )
         {

@@ -15,7 +15,7 @@ class  SearchTest  extends  TestCase
         $emMock  = $this->createMock('\Doctrine\ORM\EntityManager',
                array('getRepository', 'getClassMetadata'), array(), '', false);
 
-        (new \Silvioq\ReportBundle\Tests\MockBuilder\ConfigurationMockBuilder($this,$emMock))->configure();
+        (new \Silvioq\ReportBundle\Tests\MockBuilder\ConfigurationMockBuilder($this,$emMock,'pdo_mysql'))->configure();
 
         $repoMock = $this->createMock( '\Doctrine\ORM\EntityRepository', ["createQueryBuilder"], array(), '', false );
         $qbMock = $this->createMock( '\Doctrine\ORM\QueryBuilder', ["select", "getQuery", "andWhere",'expr'], array(), '', false );

@@ -19,10 +19,16 @@ class ConfigurationMockBuilder
      */
     private $emMock;
 
-    public function __construct( TestCase $test, EntityManagerInterface $emMock )
+    /**
+     * @var string
+     */
+    private $driver;
+
+    public function __construct( TestCase $test, EntityManagerInterface $emMock, $driver = 'pdo_pgsql' )
     {
         $this->test = $test;
         $this->emMock = $emMock;
+        $this->driver = $driver;
     }
 
     public static function doctrineExtensionsEnabled():bool
@@ -68,7 +74,7 @@ class ConfigurationMockBuilder
 
         $dMock->expects($this->test->once())
             ->method('getName')
-            ->willReturn('pdo_pgsql');
+            ->willReturn($this->driver);
 
     }
 }
