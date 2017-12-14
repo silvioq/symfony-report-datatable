@@ -551,19 +551,6 @@ class  Builder {
         return  ':' . $param;
     }
 
-    /**
-     * Returns a filter expression
-     *
-     * @param string $columnName
-     * @param string $searchStr
-     * @param QueryBuilder $cb  Reference for add parameters
-     *
-     * @return string
-     *
-     * @throws LogicException
-     *
-     */
-
     const NOT_SEARCHABLE_COLUMN_TYPES = [
         ORMType::BOOLEAN,
         ORMType::DATEINTERVAL,
@@ -587,6 +574,18 @@ class  Builder {
         ORMType::TIME_IMMUTABLE,
     ];
 
+    /**
+     * Returns a filter expression
+     *
+     * @param string $columnName
+     * @param string $searchStr
+     * @param QueryBuilder $cb  Reference for add parameters
+     *
+     * @return string
+     *
+     * @throws LogicException
+     *
+     */
     private function  getWhereFor( string $columnName, string  $searchStr, QueryBuilder $cb ):string
     {
         // TODO Generate an array with no searcheable column types
