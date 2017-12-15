@@ -187,7 +187,6 @@ class WhereBuilder
      * @return string
      *
      * @throws LogicException
-     *
      */
     public function  getWhereFor( string $columnName, string  $searchStr):string
     {
@@ -250,6 +249,17 @@ class WhereBuilder
                     $columnName, $searchStr ) );
     }
 
+    /**
+     * Get where handling SQL like expression. If not expression
+     * detected, return getWhereFor function as fallback
+     *
+     * @param string $columnName
+     * @param string $searchStr
+     *
+     * @return string
+     *
+     * @throws LogicException
+     */
     public function getExpresiveWhere($columnName, $searchStr)
     {
         if( $searchStr === 'is null'){
