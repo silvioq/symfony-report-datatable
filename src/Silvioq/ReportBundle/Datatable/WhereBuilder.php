@@ -9,27 +9,37 @@ use Doctrine\DBAL\Types\Type as ORMType;
 class WhereBuilder
 {
     const NOT_SEARCHABLE_COLUMN_TYPES = [
-        ORMType::BOOLEAN,
-        ORMType::DATEINTERVAL,
-        ORMType::BINARY,
-        ORMType::BLOB,
-        ORMType::OBJECT,
-        ORMType::TARRAY,
+        'BOOLEAN',
+        'DATEINTERVAL',
+        'BINARY',
+        'BLOB',
+        'OBJECT',
+        'TARRAY',
     ];
 
     const DATETIME_COLUMN_TYPES = [
-        ORMType::DATE,
-        ORMType::DATE_IMMUTABLE,
-        ORMType::DATETIME,
-        ORMType::DATETIME_IMMUTABLE,
-        ORMType::DATETIMETZ,
-        ORMType::DATETIMETZ_IMMUTABLE,
+        'DATE',
+        'DATE_IMMUTABLE',
+        'DATETIME',
+        'DATETIME_IMMUTABLE',
+        'DATETIMETZ',
+        'DATETIMETZ_IMMUTABLE',
     ];
 
     const TIME_COLUMN_TYPES = [
-        ORMType::TIME,
-        ORMType::TIME_IMMUTABLE,
+        'TIME',
+        'TIME_IMMUTABLE',
     ];
+
+    const JSON_COLUMN_TYPES = [
+        'JSON',
+        'JSON_ARRAY',
+    ];
+
+    const DATE = 1;
+    const TIME = 2;
+    const NOTSEARCH = 3;
+    const JSON = 4;
 
     /**
      * @var int
@@ -52,18 +62,23 @@ class WhereBuilder
     private $qb;
 
     /**
-     * @var boolean
+     * @var bool
      */
     private $dateFormatFunc = false;
 
     /**
-     * @var boolean
+     * @var bool
      */
     private $isPostgres = false;
 
+    /**
+     * @var array|null
+     */
+    private $ORMColumnTypes = null;
+
     public function  __construct(EntityManagerInterface $em)
     {
-        /** @var boolean */
+        /** @var bool */
         $this->dateFormatFunc = class_exists( "DoctrineExtensions\Query\Postgresql\DateFormat" );
 
         /** @var string */
@@ -168,7 +183,7 @@ class WhereBuilder
             $param = $this->createParameter( "%" . strtolower( $searchStr ). "%");
             return  $this->qb->expr()->like( sprintf('LOWER(%s)',$columnName), $param );
 
-        } else if( ORMType::JSON_ARRAY === $ct || ORMType::JSON === $ct ) {
+        } else if( $this->isColumnType($ct, self::JSON) ) {
             if( $this->isPostgres )
                 return  ''; // TODO write proper condition
             else
@@ -186,7 +201,7 @@ class WhereBuilder
         }
 
         /** @var bool */
-        $isDate = in_array($ct, self::DATETIME_COLUMN_TYPES, true );
+        $isDate = $this->isColumnType($ct, self::DATE);
         if( $this->dateFormatFunc && $isDate )
         {
             $param = $this->createParameter( "%" . strtolower( $searchStr ). "%" );
@@ -200,7 +215,7 @@ class WhereBuilder
         }
 
         /** @var bool */
-        $isTime = in_array($ct, self::TIME_COLUMN_TYPES, true );
+        $isTime = $this->isColumnType($ct, self::TIME);
         if( $this->dateFormatFunc && $isTime ) {
             $param = $this->createParameter( "%" . strtolower( $searchStr ). "%" );
             $fecha = $this->createParameter( 'HH:MI:SS' );
@@ -212,7 +227,7 @@ class WhereBuilder
             return  $this->qb->expr()->like( $columnName, $param );
         }
 
-        if( in_array( $ct, self::NOT_SEARCHABLE_COLUMN_TYPES, true ) )
+        if ($this->isColumnType($ct, self::NOTSEARCH))
             return '';
 
         throw new \LogicException( sprintf( "Can't generate where expression for column %s, search string %s",
@@ -247,6 +262,54 @@ class WhereBuilder
             $filter = $this->getWhereFor( $columnName, $searchStr );
         }
         return $filter;
+    }
+
+    private function isColumnType(string $columnORMType, int $columnSearchType):bool
+    {
+        $this->buildORMTypes();
+        if( !isset( $this->ORMColumnTypes[$columnORMType] ) )
+            return false;
+
+        return $columnSearchType === $this->ORMColumnTypes[$columnORMType];
+    }
+
+    private function buildORMTypes()
+    {
+        if (null !== $this->ORMColumnTypes )
+            return;
+
+        $this->ORMColumnTypes = [];
+        foreach( array_map(function($type){
+                return constant('Doctrine\DBAL\Types\Type::' . $type);
+            }, array_filter( self::DATETIME_COLUMN_TYPES, function($type) {
+                return defined( 'Doctrine\DBAL\Types\Type::' . $type);
+            } ) ) as $type ) {
+            $this->ORMColumnTypes[$type] = self::DATE;
+        }
+
+        foreach( array_map(function($type){
+                return constant('Doctrine\DBAL\Types\Type::' . $type);
+            }, array_filter( self::NOT_SEARCHABLE_COLUMN_TYPES, function($type) {
+                return defined( 'Doctrine\DBAL\Types\Type::' . $type);
+            } ) ) as $type ) {
+            $this->ORMColumnTypes[$type] = self::NOTSEARCH;
+        }
+
+        foreach( array_map(function($type){
+                return constant('Doctrine\DBAL\Types\Type::' . $type);
+            }, array_filter( self::TIME_COLUMN_TYPES, function($type) {
+                return defined( 'Doctrine\DBAL\Types\Type::' . $type);
+            } ) ) as $type ) {
+            $this->ORMColumnTypes[$type] = self::TIME;
+        }
+
+        foreach( array_map(function($type){
+                return constant('Doctrine\DBAL\Types\Type::' . $type);
+            }, array_filter( self::JSON_COLUMN_TYPES, function($type) {
+                return defined( 'Doctrine\DBAL\Types\Type::' . $type);
+            } ) ) as $type ) {
+            $this->ORMColumnTypes[$type] = self::JSON;
+        }
     }
 }
 // vim:sw=4 ts=4 sts=4 et
