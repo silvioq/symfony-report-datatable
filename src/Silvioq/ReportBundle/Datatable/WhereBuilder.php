@@ -36,10 +36,27 @@ class WhereBuilder
         'JSON_ARRAY',
     ];
 
-    const DATE = 1;
-    const TIME = 2;
-    const NOTSEARCH = 3;
-    const JSON = 4;
+    const NUMERIC_COLUMN_TYPES = [
+        'INTEGER',
+        'SMALLINT',
+        'BIGINT',
+        'DECIMAL',
+        'FLOAT',
+    ];
+
+    const STRING_COLUMN_TYPES = [
+        'STRING',
+        'TEXT',
+        'SIMPLE_ARRAY',
+        'GUID',
+    ];
+
+    const STRING = 1;
+    const NUMERIC = 2;
+    const DATE = 3;
+    const TIME = 4;
+    const NOTSEARCH = 5;
+    const JSON = 6;
 
     /**
      * @var int
@@ -79,7 +96,7 @@ class WhereBuilder
     public function  __construct(EntityManagerInterface $em)
     {
         /** @var bool */
-        $this->dateFormatFunc = class_exists( "DoctrineExtensions\Query\Postgresql\DateFormat" );
+        $this->dateFormatFunc = class_exists( 'DoctrineExtensions\Query\Postgresql\DateFormat' );
 
         /** @var string */
         $driverName = $em->getConnection()->getDriver()->getName();
@@ -179,10 +196,16 @@ class WhereBuilder
 
         $ct = $this->getColumnType( $columnName );
 
-        if( in_array( $ct, [ ORMType::STRING, ORMType::TEXT, ORMType::SIMPLE_ARRAY, ORMType::GUID ] ) ) {
+        if( $this->isColumnType($ct, self::STRING) ) {
             $param = $this->createParameter( "%" . strtolower( $searchStr ). "%");
             return  $this->qb->expr()->like( sprintf('LOWER(%s)',$columnName), $param );
-
+        }
+        elseif( $this->isColumnType($ct, self::NUMERIC))
+        {
+            if( is_numeric( $searchStr ) )
+                return $this->qb->expr()->eq( $columnName, $searchStr );
+            else
+                return '';
         } else if( $this->isColumnType($ct, self::JSON) ) {
             if( $this->isPostgres )
                 return  ''; // TODO write proper condition
@@ -191,13 +214,6 @@ class WhereBuilder
                 $param = $this->createParameter( "%" . strtolower( $searchStr ). "%");
                 return  $this->qb->expr()->like( sprintf('LOWER(%s)',$columnName), $param );
             }
-        }
-        elseif( in_array( $ct, array( ORMType::INTEGER, ORMType::SMALLINT, ORMType::BIGINT, ORMType::DECIMAL, ORMType::FLOAT ) ) )
-        {
-            if( is_numeric( $searchStr ) )
-                return $this->qb->expr()->eq( $columnName, $searchStr );
-            else
-                return '';
         }
 
         /** @var bool */
@@ -279,6 +295,23 @@ class WhereBuilder
             return;
 
         $this->ORMColumnTypes = [];
+
+        foreach( array_map(function($type){
+                return constant('Doctrine\DBAL\Types\Type::' . $type);
+            }, array_filter( self::STRING_COLUMN_TYPES, function($type) {
+                return defined( 'Doctrine\DBAL\Types\Type::' . $type);
+            } ) ) as $type ) {
+            $this->ORMColumnTypes[$type] = self::STRING;
+        }
+
+        foreach( array_map(function($type){
+                return constant('Doctrine\DBAL\Types\Type::' . $type);
+            }, array_filter( self::NUMERIC_COLUMN_TYPES, function($type) {
+                return defined( 'Doctrine\DBAL\Types\Type::' . $type);
+            } ) ) as $type ) {
+            $this->ORMColumnTypes[$type] = self::NUMERIC;
+        }
+
         foreach( array_map(function($type){
                 return constant('Doctrine\DBAL\Types\Type::' . $type);
             }, array_filter( self::DATETIME_COLUMN_TYPES, function($type) {
