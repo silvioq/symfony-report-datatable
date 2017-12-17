@@ -45,10 +45,11 @@ class Table
      * @param string $name  Generic name of column
      * @param string $getter  Getter of entity collection
      * @param array|\Traversable $targetCollection  Collection of elements
+     * @param string $labelPrefix
      *
      * @return self
      */
-    public function addExpansible(string $name, $getter, $targetCollection)
+    public function addExpansible(string $name, $getter, $targetCollection, string $labelPrefix = '')
     {
         if( null === $getter )
             $getter = 'get' . ucfirst( $name );
@@ -79,7 +80,7 @@ class Table
                 return false;
             };
 
-            $this->add( $columnName, $subColumnName, $callback );
+            $this->add( $columnName, $labelPrefix . $subColumnName, $callback );
         }
         return $this;
     }

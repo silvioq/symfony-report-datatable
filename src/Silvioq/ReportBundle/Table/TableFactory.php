@@ -59,7 +59,10 @@ class TableFactory
                 if (\Doctrine\ORM\Mapping\ClassMetadataInfo::MANY_TO_MANY !== $fieldMapping['type'])
                     throw new \RuntimeException(sprintf('Column %s must be MANY_TO_MANY association', $col->name ));
 
-                $table->addExpansible($col->name, $col->getter, $this->em->getRepository($fieldMapping['targetEntity'])->{$col->expandFinder}() );
+                $table->addExpansible($col->name, $col->getter,
+                    $this->em->getRepository($fieldMapping['targetEntity'])->{$col->expandFinder}(),
+                    $col->label ?? ''
+                );
             } else {
                 $table->add( $col->name, $col->label, $col->getter );
             }
