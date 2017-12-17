@@ -55,7 +55,7 @@ class TableFactory
             if( $col->expandMTM ) {
                 $metadata = $this->em->getClassMetadata($entityClass);
                 /** @var array */
-                $fieldMapping = $metadata->getFieldMapping($col->name );
+                $fieldMapping = $metadata->getAssociationMapping($col->name );
                 if (\Doctrine\ORM\Mapping\ClassMetadataInfo::MANY_TO_MANY !== $fieldMapping['type'])
                     throw new \RuntimeException(sprintf('Column %s must be MANY_TO_MANY association', $col->name ));
 

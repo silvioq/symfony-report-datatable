@@ -79,7 +79,7 @@ class Table
                 return false;
             };
 
-            $this->add( $columnName, $columnName, $callback );
+            $this->add( $columnName, $subColumnName, $callback );
         }
         return $this;
     }
