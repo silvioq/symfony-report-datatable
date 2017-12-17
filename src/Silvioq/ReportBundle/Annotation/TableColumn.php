@@ -18,6 +18,20 @@ class TableColumn
     public $order = INF;
 
     /**
+     * Flag for expand ManyToMany associations
+     *
+     * @var bool
+     */
+    public $expandMTM;
+
+    /**
+     * function name for retrieve all elements for expansion
+     *
+     * @var string
+     */
+    public $expandFinder;
+
+    /**
      * @var int
      */
     public $key;
@@ -30,6 +44,8 @@ class TableColumn
             'label' => null,
             'getter' => null,
             'order' => INF,
+            'expandMTM' => false,
+            'expandFinder' => 'findAll',
         ]);
 
         $options = $resolver->resolve($array);
@@ -37,6 +53,8 @@ class TableColumn
         $this->label = $options['label'];
         $this->getter = $options['getter'];
         $this->order = $options['order'];
+        $this->expandMTM = $options['expandMTM'];
+        $this->expandFinder = $options['expandFinder'];
     }
 }
 // vim:sw=4 ts=4 sts=4 et

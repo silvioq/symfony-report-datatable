@@ -31,7 +31,7 @@ class Column
             $label = static::humanize( $name );
         else if( !is_string( $label ) )
             throw new \InvalidArgumentException( 'Label must be string' );
-            
+
         if( null === $getter )
             $getter = 'get' . ucfirst( $name );
         else if( !is_string( $getter ) && !is_callable( $getter ) )

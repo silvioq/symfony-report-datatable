@@ -92,7 +92,7 @@ class TableFactoryTest extends TestCase
 
     /**
      * @expectedException \Symfony\Component\OptionsResolver\Exception\UndefinedOptionsException
-     * @expectedExceptionMessage The option "key" does not exist. Defined options are: "getter", "label", "name", "order".
+     * @expectedExceptionMessage The option "key" does not exist. Defined options are: "expandFinder", "expandMTM", "getter", "label", "name", "order".
      * @depends testEntity
      */
     public function testReaderWithInvalidAnnotation()

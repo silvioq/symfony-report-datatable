@@ -52,6 +52,16 @@ class ClassMetadataInfoMockBuilder
         $this->assoc[$fieldName] = [ 'type' => \Doctrine\ORM\Mapping\ClassMetadataInfo::MANY_TO_ONE ];
     }
 
+    public function addManyToMany( $fieldName ):self
+    {
+        $this->assoc[$fieldName] = [
+            'type' => \Doctrine\ORM\Mapping\ClassMetadataInfo::MANY_TO_MANY,
+            'targetEntity' => ucfirst($fieldName)
+          ];
+
+        return $this;
+    }
+
     /**
      * @return ClassMetadataInfo
      */
@@ -82,6 +92,12 @@ class ClassMetadataInfoMockBuilder
             ->method('getAssociationMappings')
             ->will($this->test->returnValue($this->assoc))
             ;
+
+        $mock->expects($this->test->any())
+            ->method('getFieldMapping')
+            ->will($this->test->returnCallback(function($field){
+                return $this->assoc[$field];
+            }));
 
         $this->emMock->expects($this->test->atLeastOnce())
             ->method('getClassMetadata')
