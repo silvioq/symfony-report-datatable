@@ -10,6 +10,6 @@ services:
         public: true
         
     silvioq.report.table:
-        class: Silvioq\ReportBundle\Service\TableFactory
+        class: Silvioq\ReportBundle\Table\TableFactory
         arguments: ["@doctrine.orm.entity_manager", "@annotation_reader"]
         public: true

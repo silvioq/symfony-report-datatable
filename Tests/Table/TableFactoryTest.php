@@ -3,7 +3,7 @@
 namespace  Silvioq\ReportBundle\Tests\Table;
 
 use PHPUnit\Framework\TestCase;
-use Silvioq\ReportBundle\Service\TableFactory;
+use Silvioq\ReportBundle\Table\TableFactory;
 use Silvioq\ReportBundle\Table\Table;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Annotations\AnnotationRegistry;

@@ -1,6 +1,6 @@
 <?php
 
-namespace  Silvioq\ReportBundle\Service;
+namespace  Silvioq\ReportBundle\Table;
 
 use Doctrine\Common\Annotations\Reader;
 use Doctrine\ORM\EntityManagerInterface;
