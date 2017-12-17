@@ -40,6 +40,51 @@ class Table
     }
 
     /**
+     * Add expansible
+     *
+     * @param string $name  Generic name of column
+     * @param string $getter  Getter of entity collection
+     * @param array|\Traversable $targetCollection  Collection of elements
+     *
+     * @return self
+     */
+    public function addExpansible(string $name, $getter, $targetCollection)
+    {
+        if( null === $getter )
+            $getter = 'get' . ucfirst( $name );
+        else if( !is_string( $getter ) && !is_callable( $getter ) )
+            throw new \InvalidArgumentException( 'getter must be string or callable' );
+
+        if( !is_array($targetCollection) && !$targetCollection instanceof \Traversable )
+            throw new \InvalidArgumentException('$targetCollection argument must be iterable');
+
+        foreach ($targetCollection as $targetEntity) {
+            $subColumnName = $this->scalarizer->scalarize($targetEntity);
+            $columnName = $name.'.'.$subColumnName;
+
+            $callback = function($entity) use($targetEntity,$getter){
+                if( is_callable( $getter ) ) {
+                    $entityList = $getter($entity);
+                } else
+                    $entityList = $entity->$getter();
+
+                if( !is_array($entityList) && !$entityList instanceof \Traversable )
+                    return false;
+
+                foreach( $entityList as $selectedEntity ) {
+                    if( $targetEntity === $selectedEntity ) {
+                        return true;
+                    }
+                }
+                return false;
+            };
+
+            $this->add( $columnName, $columnName, $callback );
+        }
+        return $this;
+    }
+
+    /**
      * @return self
      *
      * @throws \OutOfBoundsException
@@ -62,7 +107,7 @@ class Table
     {
         if( !count($this->columns) )
             throw new \LogicException("Generator not initialized");
-              
+
         return array_map( function(Column $col){
             return $col->getLabel();
         }, array_values($this->columns) );

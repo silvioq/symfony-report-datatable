@@ -49,9 +49,20 @@ class TableFactory
         });
 
         $table = new Table($entityClass, $scalarizerOptions);
+        $metadata = null;
 
         foreach( $columns as $col ) {
-            $table->add( $col->name, $col->label, $col->getter );
+            if( $col->expandMTM ) {
+                $metadata = $this->em->getClassMetadata($entityClass);
+                /** @var array */
+                $fieldMapping = $metadata->getFieldMapping($col->name );
+                if (\Doctrine\ORM\Mapping\ClassMetadataInfo::MANY_TO_MANY !== $fieldMapping['type'])
+                    throw new \RuntimeException(sprintf('Column %s must be MANY_TO_MANY association', $col->name ));
+
+                $table->addExpansible($col->name, $col->getter, $this->em->getRepository($fieldMapping['targetEntity'])->{$col->expandFinder}() );
+            } else {
+                $table->add( $col->name, $col->label, $col->getter );
+            }
         }
 
         return $table;
@@ -122,8 +133,7 @@ class TableFactory
 
         foreach( $metadata->getAssociationMappings() as $field => $mapping )
         {
-            switch($mapping['type'])
-            {
+            switch($mapping['type']){
                 case \Doctrine\ORM\Mapping\ClassMetadataInfo::ONE_TO_ONE:
                 case \Doctrine\ORM\Mapping\ClassMetadataInfo::MANY_TO_ONE:
                     $col = new TableColumn();
