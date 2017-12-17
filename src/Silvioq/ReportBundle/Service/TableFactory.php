@@ -58,10 +58,10 @@ class TableFactory
     }
 
     /**
-     * @param $entityClass string
+     * @param string $entityClass
      * @return array
      */
-    private function columnsFromAnnotation($entityClass):array
+    private function columnsFromAnnotation(string $entityClass):array
     {
         $class = new \ReflectionClass($entityClass);
         // TODO: Check. Needed for autoload
