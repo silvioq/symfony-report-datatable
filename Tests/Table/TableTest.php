@@ -57,7 +57,7 @@ class TableTest extends TestCase
             ->method('getArray')
             ->willReturn($fields);
 
-        $this->assertEquals(['array.One', 'array.Two', 'array.Three'], $table->getHeader());
+        $this->assertEquals(['One', 'Two', 'Three'], $table->getHeader());
         $this->assertSame($expected, $table->getRow($mock));
     }
 
