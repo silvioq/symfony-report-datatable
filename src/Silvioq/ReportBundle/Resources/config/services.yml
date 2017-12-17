@@ -5,7 +5,7 @@ services:
         public: true
 
     silvioq.report.datatable:
-        class: Silvioq\ReportBundle\Service\DatatableFactory
+        class: Silvioq\ReportBundle\Datatable\DatatableFactory
         arguments: ["@doctrine.orm.entity_manager", "@request_stack"]
         public: true
         

@@ -5,7 +5,7 @@ namespace  Silvioq\ReportBundle\Tests;
 use Silvioq\ReportBundle\DependencyInjection\SilvioqReportExtension;
 use Matthias\SymfonyDependencyInjectionTest\PhpUnit\AbstractExtensionTestCase;
 use Silvioq\ReportBundle\Table\TableFactory;
-use Silvioq\ReportBundle\Service\DatatableFactory;
+use Silvioq\ReportBundle\Datatable\DatatableFactory;
 use Silvioq\ReportBundle\Datatable\Builder;
 
 /**

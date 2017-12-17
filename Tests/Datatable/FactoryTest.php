@@ -6,7 +6,7 @@ use PHPUnit\Framework\TestCase;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Silvioq\ReportBundle\Service\DatatableFactory;
+use Silvioq\ReportBundle\Datatable\DatatableFactory;
 use Silvioq\ReportBundle\Datatable\Builder;
 
 class  FactoryTest  extends  TestCase
