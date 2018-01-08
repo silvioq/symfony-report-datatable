@@ -228,8 +228,11 @@ class  SearchTest  extends  TestCase
     /**
      * @dataProvider getORMTypes
      */
-    public  function  testSearchOnIntegerColumns($numericType, $dataValue = 3)
+    public  function  testSearchOnIntegerColumns($numericType, $dataValue = 3, $dataExpected = null)
     {
+        if (null === $dataExpected)
+            $dataExpected = $dataValue;
+
         $emMock  = $this->createMock('\Doctrine\ORM\EntityManager',
                array('getRepository', 'getClassMetadata'), array(), '', false);
         (new \Silvioq\ReportBundle\Tests\MockBuilder\ConfigurationMockBuilder($this,$emMock))->configure();
@@ -280,8 +283,8 @@ class  SearchTest  extends  TestCase
             ;
 
         $e = new Expr();
-        $comp1 = $e->eq('a.field1', $dataValue);
-        $comp2 = $e->eq('a.field2', $dataValue);
+        $comp1 = $e->eq('a.field1', $dataExpected);
+        $comp2 = $e->eq('a.field2', $dataExpected);
         $qbMock->expects($this->once())
             ->method('andWhere')
             ->with($this->equalTo(new Expr\Orx([$comp1, $comp2] )))
@@ -324,6 +327,7 @@ class  SearchTest  extends  TestCase
     {
         return [
             [ ORMType::INTEGER, 3 ],
+            [ ORMType::INTEGER, '3.', 3 ],
             [ ORMType::DECIMAL, 3.16 ],
             [ ORMType::SMALLINT, -4 ],
             [ ORMType::BIGINT, 2 ** 33 ],
