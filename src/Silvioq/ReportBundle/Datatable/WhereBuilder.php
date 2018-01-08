@@ -202,7 +202,7 @@ class WhereBuilder
         elseif( $this->isColumnType($ct, self::NUMERIC))
         {
             if( is_numeric( $searchStr ) )
-                return $this->qb->expr()->eq( $columnName, $searchStr );
+                return $this->qb->expr()->eq( $columnName, (float)$searchStr );
             else
                 return '';
         } else if( $this->isColumnType($ct, self::JSON) ) {
