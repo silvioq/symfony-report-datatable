@@ -33,23 +33,10 @@ class DoctrineDefinitionLoader implements DefinitionLoaderInterface
     public function addColumns(Table $table):int
     {
         $entityClass = $table->getEntityClass();
-
-        /** @var array */
-        $columns = $this->columnsFromAnnotation($entityClass);
-        if( count( $columns ) == 0 ) {
-            $columns = $this->columnsFromMetadata($entityClass);
-        }
+        $columns = $this->generateColumns($entityClass);
 
         if( count( $columns ) == 0 )
             return DefinitionLoaderInterface::PARTIAL;
-
-        usort( $columns, function($a,$b){
-            if( $a->order < $b->order ) return -1;
-            if( $a->order > $b->order ) return 1;
-            if( $a->key < $b->key ) return -1;
-            if( $a->key > $b->key ) return 1;
-            return 0;
-        });
 
         $metadata = null;
 
@@ -73,6 +60,24 @@ class DoctrineDefinitionLoader implements DefinitionLoaderInterface
         return DefinitionLoaderInterface::COMPLETE;
     }
 
+    protected function generateColumns($entityClass):array
+    {
+        /** @var array */
+        $columns = $this->columnsFromAnnotation($entityClass);
+        if( count( $columns ) == 0 ) {
+            $columns = $this->columnsFromMetadata($entityClass);
+        }
+
+        usort( $columns, function($a,$b){
+            if( $a->order < $b->order ) return -1;
+            if( $a->order > $b->order ) return 1;
+            if( $a->key < $b->key ) return -1;
+            if( $a->key > $b->key ) return 1;
+            return 0;
+        });
+
+        return $columns;
+    }
 
     /**
      * @param string $entityClass
