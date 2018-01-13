@@ -38,6 +38,14 @@ class DoctrineDefinitionLoader implements DefinitionLoaderInterface
         if( count( $columns ) == 0 )
             return DefinitionLoaderInterface::PARTIAL;
 
+        usort( $columns, function($a,$b){
+            if( $a->order < $b->order ) return -1;
+            if( $a->order > $b->order ) return 1;
+            if( $a->key < $b->key ) return -1;
+            if( $a->key > $b->key ) return 1;
+            return 0;
+        });
+
         $metadata = null;
 
         foreach( $columns as $col ) {
@@ -67,14 +75,6 @@ class DoctrineDefinitionLoader implements DefinitionLoaderInterface
         if( count( $columns ) == 0 ) {
             $columns = $this->columnsFromMetadata($entityClass);
         }
-
-        usort( $columns, function($a,$b){
-            if( $a->order < $b->order ) return -1;
-            if( $a->order > $b->order ) return 1;
-            if( $a->key < $b->key ) return -1;
-            if( $a->key > $b->key ) return 1;
-            return 0;
-        });
 
         return $columns;
     }
