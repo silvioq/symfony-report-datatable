@@ -26,6 +26,14 @@ class Table
     }
 
     /**
+     * @return string
+     */
+    public function getEntityClass():string
+    {
+        return $this->entityClass;
+    }
+
+    /**
      * Add field.
      *
      * @return self
@@ -102,11 +110,21 @@ class Table
     }
 
     /**
+     * Return initialized status of table definition
+     *
+     * @return bool
+     */
+    public function isInitialized():bool
+    {
+        return count($this->columns) > 0;
+    }
+
+    /**
      * @return array
      */
     public function getHeader():array
     {
-        if( !count($this->columns) )
+        if( !$this->isInitialized() )
             throw new \LogicException("Generator not initialized");
 
         return array_map( function(Column $col){
@@ -131,7 +149,7 @@ class Table
      */
     public function getRawData($entity):array
     {
-        if( !count($this->columns) )
+        if( !$this->isInitialized() )
             throw new \LogicException("Generator not initialized");
 
         if( !($entity instanceof $this->entityClass ) )
