@@ -2,8 +2,6 @@
 
 namespace  Silvioq\ReportBundle\Table;
 
-use Doctrine\Common\Annotations\Reader;
-use Doctrine\ORM\EntityManagerInterface;
 use Silvioq\ReportBundle\Annotation\TableColumn;
 use Silvioq\ReportBundle\Table\Table;
 
@@ -11,19 +9,18 @@ use Silvioq\ReportBundle\Table\Table;
 class TableFactory
 {
     /**
-     * @var EntityManagerInterface
+     * @var DefinitionLoaderInterface[]
      */
-    private $em;
+    private $loaders = [];
 
-    /**
-     * @var Reader
-     */
-    private $reader;
-
-    public function __construct(EntityManagerInterface $em, Reader $reader)
+    public function addLoader(DefinitionLoaderInterface $definition, int $priority):self
     {
-        $this->em = $em;
-        $this->reader = $reader;
+        $this->loaders[] = [
+            'loader' => $definition,
+            'priority' => $priority,
+        ];
+
+        return $this;
     }
 
     /**
@@ -31,123 +28,25 @@ class TableFactory
      */    
     public function build($entityClass, array $scalarizerOptions = []):Table
     {
-        /** @var array */
-        $columns = $this->columnsFromAnnotation($entityClass);
-        if( count( $columns ) == 0 ) {
-            $columns = $this->columnsFromMetadata($entityClass);
+        if (count($this->loaders) === 0) {
+            throw new \LogicException('TableFactory not configured');
         }
 
-        if( count( $columns ) == 0 )
-            throw new \LogicException( sprintf( 'No columns for %s', $entityClass ) );
-
-        usort( $columns, function($a,$b){
-            if( $a->order < $b->order ) return -1;
-            if( $a->order > $b->order ) return 1;
-            if( $a->key < $b->key ) return -1;
-            if( $a->key > $b->key ) return 1;
-            return 0;
+        usort($this->loaders, function($a,$b) {
+            return $b['priority'] - $a['priority'];
         });
 
         $table = new Table($entityClass, $scalarizerOptions);
-        $metadata = null;
 
-        foreach( $columns as $col ) {
-            if( $col->expandMTM ) {
-                $metadata = $this->em->getClassMetadata($entityClass);
-                /** @var array */
-                $fieldMapping = $metadata->getAssociationMapping($col->name );
-                if (\Doctrine\ORM\Mapping\ClassMetadataInfo::MANY_TO_MANY !== $fieldMapping['type'])
-                    throw new \RuntimeException(sprintf('Column %s must be MANY_TO_MANY association', $col->name ));
-
-                $table->addExpansible($col->name, $col->getter,
-                    $this->em->getRepository($fieldMapping['targetEntity'])->{$col->expandFinder}(),
-                    $col->label ?? ''
-                );
-            } else {
-                $table->add( $col->name, $col->label, $col->getter );
-            }
+        foreach ($this->loaders as $loader) {
+            /** @var DefinitionLoaderInterface $loader */
+            $ret = $loader['loader']->addColumns($table);
+            if (DefinitionLoaderInterface::COMPLETE === $ret)
+                break;
         }
 
         return $table;
     }
 
-    /**
-     * @param string $entityClass
-     * @return array
-     */
-    private function columnsFromAnnotation(string $entityClass):array
-    {
-        $class = new \ReflectionClass($entityClass);
-        // TODO: Check. Needed for autoload
-        new TableColumn();
-
-        $columns = [];
-        $count = 0;
-
-        foreach( $class->getProperties() as $property )
-        {
-            $annotation = $this->reader->getPropertyAnnotation($property, TableColumn::class);
-            if( null === $annotation ) continue;
-            
-            if( null === $annotation->name )
-                $annotation->name = $property->getName();
-
-            $annotation->key = ++$count;
-            array_push( $columns, $annotation );
-        }
-
-        foreach( $class->getMethods() as $method )
-        {
-            $annotation = $this->reader->getMethodAnnotation($method, TableColumn::class);
-            if( null === $annotation ) continue;
-
-            if( null === $annotation->name )
-            {
-                $annotation->name = preg_replace( '/^get/', '', $method->getName() );
-                $annotation->name = strtolower( substr( $annotation->name, 0, 1 ) ) . substr( $annotation->name, 1 );
-            }
-
-            if( null === $annotation->getter )
-                $annotation->getter = $method->getName();
-
-            $annotation->key = ++$count;
-            array_push( $columns, $annotation );
-        }
-
-        return $columns;
-    }
-
-    private function columnsFromMetadata($entityClass)
-    {
-        $metadata = $this->em->getClassMetadata($entityClass);
-        if( null === $metadata )
-            return [];
-
-        $columns = [];
-        $count = 0;
-        $fields = $metadata->getFieldNames();
-        foreach( $fields as $field )
-        {
-            $col = new TableColumn();
-            $col->name = $field;
-            $col->key = $count++;
-            array_push( $columns, $col );
-        }
-
-        foreach( $metadata->getAssociationMappings() as $field => $mapping )
-        {
-            switch($mapping['type']){
-                case \Doctrine\ORM\Mapping\ClassMetadataInfo::ONE_TO_ONE:
-                case \Doctrine\ORM\Mapping\ClassMetadataInfo::MANY_TO_ONE:
-                    $col = new TableColumn();
-                    $col->name = $field;
-                    $col->key = $count++;
-                    array_push( $columns, $col );
-            }
-                    
-        }
-
-        return $columns;
-    }
 }
 // vim:sw=4 ts=4 sts=4 et

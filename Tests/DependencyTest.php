@@ -4,7 +4,9 @@ namespace  Silvioq\ReportBundle\Tests;
 
 use Silvioq\ReportBundle\DependencyInjection\SilvioqReportExtension;
 use Matthias\SymfonyDependencyInjectionTest\PhpUnit\AbstractExtensionTestCase;
+use Symfony\Component\DependencyInjection\Reference;
 use Silvioq\ReportBundle\Table\TableFactory;
+use Silvioq\ReportBundle\Table\DefinitionLoader\DoctrineDefinitionLoader;
 use Silvioq\ReportBundle\Datatable\DatatableFactory;
 use Silvioq\ReportBundle\Datatable\Builder;
 
@@ -28,6 +30,20 @@ class  DependencyTest extends AbstractExtensionTestCase
         $this->assertContainerBuilderHasService( 'silvioq.report.datatable', DatatableFactory::class );
         $this->assertContainerBuilderHasService( 'silvioq.report.dt', Builder::class );
         $this->assertContainerBuilderHasService( 'silvioq.report.table', TableFactory::class );
+        $this->assertContainerBuilderHasService( 'silvioq.report.table.doctrineloader', DoctrineDefinitionLoader::class);
+        $this->assertContainerBuilderHasServiceDefinitionWithArgument(
+            'silvioq.report.table.doctrineloader',
+            0, new Reference('doctrine.orm.entity_manager'));
+        $this->assertContainerBuilderHasServiceDefinitionWithArgument(
+            'silvioq.report.table.doctrineloader',
+            1, new Reference('annotation_reader'));
+
+        $this->assertContainerBuilderHasServiceDefinitionWithTag(
+            'silvioq.report.table.doctrineloader',
+            'silvioq.table.loader',
+            [ 'priority' => 0 ]
+        );
+            
     }
 
 }

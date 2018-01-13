@@ -4,107 +4,72 @@ namespace  Silvioq\ReportBundle\Tests\Table;
 
 use PHPUnit\Framework\TestCase;
 use Silvioq\ReportBundle\Table\TableFactory;
+use Silvioq\ReportBundle\Table\DefinitionLoaderInterface;
 use Silvioq\ReportBundle\Table\Table;
-use Doctrine\Common\Annotations\AnnotationReader;
-use Doctrine\Common\Annotations\AnnotationRegistry;
-use Doctrine\ORM\EntityManagerInterface;
-use Silvioq\ReportBundle\Tests\MockBuilder\ClassMetadataInfoMockBuilder;
-use Doctrine\DBAL\Types\Type as ORMType;
 
 class TableFactoryTest extends TestCase
 {
-
-    public function setUp()
+    public function testCreation()
     {
-        // Force autoload for Annotation reader
-        new \Doctrine\ORM\Mapping\Column();
+        $loaderMock = $this
+            ->getMockBuilder(DefinitionLoaderInterface::class)
+            ->getMock();
+
+        $loaderMock->expects($this->once())
+            ->method('addColumns')
+            ->willReturn(DefinitionLoaderInterface::COMPLETE);
+
+        $factory = (new TableFactory())->addLoader($loaderMock,0);
+
+        $this->assertInstanceOf(Table::class, $factory->build(stdClass::class));
     }
 
-    public function testEntity()
+    public function testPriority()
     {
-        $emMock = $this
-            ->getMockBuilder(EntityManagerInterface::class)
-            ->disableOriginalConstructor()
+        $loaderMock = $this
+            ->getMockBuilder(DefinitionLoaderInterface::class)
             ->getMock();
 
-        $entityMock = $this
-            ->getMockBuilder(stdClass::class)
+        $notCalledMock = $this
+            ->getMockBuilder(DefinitionLoaderInterface::class)
             ->getMock();
 
-        $factory = new TableFactory($emMock, new AnnotationReader());
+        $loaderMock->expects($this->once())
+            ->method('addColumns')
+            ->willReturn(DefinitionLoaderInterface::COMPLETE);
 
-        $metadata = new ClassMetadataInfoMockBuilder($this, $emMock, get_class($entityMock) );
-        $metadata
-            ->addField( 'field1', ORMType::INTEGER )
-            ->addField( 'field2' )
-            ->build(false);
+        $notCalledMock->expects($this->never())
+            ->method('addColumns')
+            ->willReturn(DefinitionLoaderInterface::COMPLETE);
 
-        $table = $factory->build(get_class($entityMock));
-        $this->assertInstanceOf(Table::class, $table);
+        $factory = (new TableFactory())
+            ->addLoader($notCalledMock,0)
+            ->addLoader($loaderMock,10);
+        $this->assertInstanceOf(Table::class, $factory->build(stdClass::class));
     }
 
-    /**
-     * @depends testEntity
-     */
-    public function testEntityWithOptions()
+    public function testReturnControl()
     {
-        $emMock = $this
-            ->getMockBuilder(EntityManagerInterface::class)
-            ->disableOriginalConstructor()
+        $loaderMock = $this
+            ->getMockBuilder(DefinitionLoaderInterface::class)
             ->getMock();
 
-        $entityMock = $this
-            ->getMockBuilder(stdClass::class)
+        $secondMock = $this
+            ->getMockBuilder(DefinitionLoaderInterface::class)
             ->getMock();
 
-        $factory = new TableFactory($emMock, new AnnotationReader());
+        $loaderMock->expects($this->once())
+            ->method('addColumns')
+            ->willReturn(DefinitionLoaderInterface::PARTIAL);
 
-        $metadata = new ClassMetadataInfoMockBuilder($this, $emMock, get_class($entityMock) );
-        $metadata
-            ->addField( 'field1', ORMType::INTEGER )
-            ->addField( 'field2' )
-            ->build(false);
+        $secondMock->expects($this->once())
+            ->method('addColumns')
+            ->willReturn(DefinitionLoaderInterface::COMPLETE);
 
-        $table = $factory->build(get_class($entityMock), ['array_separator' => '-' ]);
-        $this->assertInstanceOf(Table::class, $table);
+        $factory = (new TableFactory())
+            ->addLoader($secondMock,0)
+            ->addLoader($loaderMock,10);
+        $this->assertInstanceOf(Table::class, $factory->build(stdClass::class));
     }
-
-    /**
-     * @depends testEntity
-     */
-    public function testReader()
-    {
-        $emMock = $this
-            ->getMockBuilder(EntityManagerInterface::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $factory = new TableFactory($emMock, new AnnotationReader());
-        $table = $factory->build(Entity\Entity::class);
-        $this->assertInstanceOf( Table::class, $table );
-
-        $this->assertEquals( [ "Age", "This name" ], $table->getHeader() );
-
-        $entity = new Entity\Entity();
-        $entity->setName('Maradona');
-        $this->assertEquals( [ 42, 'Maradona'], $table->getRow($entity) );
-    }
-
-    /**
-     * @expectedException \Symfony\Component\OptionsResolver\Exception\UndefinedOptionsException
-     * @expectedExceptionMessage The option "key" does not exist. Defined options are: "expandFinder", "expandMTM", "getter", "label", "name", "order".
-     * @depends testEntity
-     */
-    public function testReaderWithInvalidAnnotation()
-    {
-        $emMock = $this
-            ->getMockBuilder(EntityManagerInterface::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $factory = new TableFactory($emMock, new AnnotationReader());
-        $table = $factory->build(Entity\EntityWithInvalidAnnotation::class);
-        $this->assertInstanceOf( Table::class, $table );
-    }
-
 }
+// vim:sw=4 ts=4 sts=4 et

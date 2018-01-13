@@ -11,5 +11,11 @@ services:
         
     silvioq.report.table:
         class: Silvioq\ReportBundle\Table\TableFactory
-        arguments: ["@doctrine.orm.entity_manager", "@annotation_reader"]
         public: true
+
+    silvioq.report.table.doctrineloader:
+        class: Silvioq\ReportBundle\Table\DefinitionLoader\DoctrineDefinitionLoader
+        arguments: ["@doctrine.orm.entity_manager", "@annotation_reader"]
+        public: false
+        tags:
+            - { name: 'silvioq.table.loader', priority: 0 }
