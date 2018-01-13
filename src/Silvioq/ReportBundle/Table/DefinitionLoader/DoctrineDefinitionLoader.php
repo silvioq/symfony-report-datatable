@@ -14,12 +14,12 @@ class DoctrineDefinitionLoader implements DefinitionLoaderInterface
     /**
      * @var EntityManagerInterface
      */
-    private $em;
+    protected $em;
 
     /**
      * @var Reader
      */
-    private $reader;
+    protected $reader;
 
     public function __construct(EntityManagerInterface $em, Reader $reader)
     {
