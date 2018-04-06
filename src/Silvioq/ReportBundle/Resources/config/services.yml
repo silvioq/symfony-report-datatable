@@ -1,7 +1,7 @@
 services:
     silvioq.report.dt:
         class: Silvioq\ReportBundle\Datatable\Builder
-        factory: [ "@silvioq.report.datatable", "build" ]
+        factory: [ "@silvioq.report.datatable", "buildDatatable" ]
         public: true
 
     silvioq.report.datatable:
