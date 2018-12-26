@@ -7,7 +7,6 @@ env:
   - WITH_EXTENSIONS=1
   - WITH_EXTENSIONS=0
   - LOWEST="--prefer-stable --prefer-lowest"
-  - LOWEST=""
 
 before_script:
   - composer self-update
