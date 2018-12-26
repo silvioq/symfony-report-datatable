@@ -1,17 +1,15 @@
 language: php
 php:
-  - '7.0'
   - '7.1'
   - '7.2'
-
-before_install:
-  - pecl install -f ast-0.1.6
 
 env:
   - WITH_EXTENSIONS=1
   - WITH_EXTENSIONS=0
-  
+  - LOWEST="--prefer-stable --prefer-lowest"
+  - LOWEST=""
+
 before_script:
   - composer self-update
   - bash -c "if [ \"$WITH_EXTENSIONS\" == \"1\" ] ; then composer require --no-update beberlei/DoctrineExtensions; fi"
-  - composer install
+  - composer update $LOWEST
