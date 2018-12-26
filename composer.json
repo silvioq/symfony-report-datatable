@@ -4,11 +4,11 @@
     "type": "library",
     "license": "MIT",
     "require": {
-        "php": ">=7.0.8",
+        "php": ">=7.1",
         "doctrine/orm": "^2.4",
-        "symfony/http-foundation": "^4.0|^3.3|^2.8",
-        "symfony/http-kernel": "^4.0|^3.3",
-        "symfony/options-resolver": "^3.3"
+        "symfony/http-foundation": "^4.1|^3.4|^2.8",
+        "symfony/http-kernel": "^4.1|^3.4",
+        "symfony/options-resolver": "^4.1|3.3"
     },
     "autoload": {
         "psr-4": { "Silvioq\\ReportBundle\\": "./src/Silvioq/ReportBundle" },
@@ -27,9 +27,8 @@
         }
     ],
     "require-dev": {
-        "matthiasnoback/symfony-dependency-injection-test": "^2.0",
-        "phpunit/phpunit": "^6.0",
-        "phan/phan": "~0.8"
+        "matthiasnoback/symfony-dependency-injection-test": "^2.0|^3.1",
+        "phpunit/phpunit": "^6.0|^7.0"
     },
     "archive": {
         "exclude": ["Tests", "phpunit.xml.dist", ".travis.yml"]
