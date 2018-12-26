@@ -4,11 +4,14 @@ services:
         factory: [ "@silvioq.report.datatable", "buildDatatable" ]
         public: true
 
+    datatable:
+        alias: "@silvioq.report.dt"
+
     silvioq.report.datatable:
         class: Silvioq\ReportBundle\Datatable\DatatableFactory
         arguments: ["@doctrine.orm.entity_manager", "@request_stack"]
-        public: true
-        
+        public: false
+
     silvioq.report.table:
         class: Silvioq\ReportBundle\Table\TableFactory
         public: true
