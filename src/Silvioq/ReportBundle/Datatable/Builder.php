@@ -172,16 +172,6 @@ class  Builder {
     }
     
     /**
-     * @deprecated
-     */
-    public function whereOnFiltered( $condition )
-    {
-        @trigger_error( 'whereOnFiltered function is deprecated and will be removed soon. Please use condition function instead',
-                E_USER_DEPRECATED );
-        return $this->condition( $condition );
-    }
-    
-    /**
      * Adds hidden column to query. The query will include the hiddens columns,
      * but this is not returned after execution
      *
