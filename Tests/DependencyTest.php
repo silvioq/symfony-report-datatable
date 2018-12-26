@@ -31,6 +31,7 @@ class  DependencyTest extends AbstractExtensionTestCase
         $this->assertContainerBuilderHasService( 'silvioq.report.dt', Builder::class );
         $this->assertContainerBuilderHasService( 'silvioq.report.table', TableFactory::class );
         $this->assertContainerBuilderHasService( 'silvioq.report.table.doctrineloader', DoctrineDefinitionLoader::class);
+        $this->assertContainerBuilderHasAlias('datatable', "@silvioq.report.dt");
         $this->assertContainerBuilderHasServiceDefinitionWithArgument(
             'silvioq.report.table.doctrineloader',
             0, new Reference('doctrine.orm.entity_manager'));
