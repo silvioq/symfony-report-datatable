@@ -9,7 +9,6 @@ use Silvioq\ReportBundle\Datatable\BuilderException;
 
 class  BuilderTest  extends  TestCase
 {
-
     /**
      * @covers Builder::getAlias
      * @covers Builder::getRepo
@@ -37,7 +36,7 @@ class  BuilderTest  extends  TestCase
         $this->assertEquals( [ 'j' => 'a.joinme' ], $dt->getJoins() );
         $this->assertEquals( [ 'field1', 'field2' ], $dt->getColumns() );
     }
-    
+
     /**
      * @covers Builder::getDraw
      */
