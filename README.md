@@ -2,6 +2,15 @@
 
 * Simple class for [Datatables](https://datatables.net) integration.
 
+## Symfony 4
+
+```php
+# config/bundles.php
+...
+    Silvioq\ReportBundle\SilvioqReportBundle::class => ['all' => true],
+...
+```
+
 ## Datatable usage
 
 TODO
