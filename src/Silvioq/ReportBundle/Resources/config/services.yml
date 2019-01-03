@@ -5,7 +5,10 @@ services:
         public: true
 
     datatable:
-        alias: "@silvioq.report.dt"
+        alias: "silvioq.report.dt"
+
+    Silvioq\ReportBundle\Datatable\Builder:
+        alias: "silvioq.report.dt"
 
     silvioq.report.datatable:
         class: Silvioq\ReportBundle\Datatable\DatatableFactory

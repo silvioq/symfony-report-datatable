@@ -16,7 +16,6 @@ use Silvioq\ReportBundle\Datatable\Builder;
  */
 class  DependencyTest extends AbstractExtensionTestCase
 {
-
     protected function getContainerExtensions()
     {
         return [
@@ -24,14 +23,14 @@ class  DependencyTest extends AbstractExtensionTestCase
         ];
     }
 
-    public  function  testDependencies( )
+    public  function  testDependencies()
     {
         $this->load();
         $this->assertContainerBuilderHasService( 'silvioq.report.datatable', DatatableFactory::class );
         $this->assertContainerBuilderHasService( 'silvioq.report.dt', Builder::class );
         $this->assertContainerBuilderHasService( 'silvioq.report.table', TableFactory::class );
         $this->assertContainerBuilderHasService( 'silvioq.report.table.doctrineloader', DoctrineDefinitionLoader::class);
-        $this->assertContainerBuilderHasAlias('datatable', "@silvioq.report.dt");
+        $this->assertContainerBuilderHasAlias('datatable', "silvioq.report.dt");
         $this->assertContainerBuilderHasServiceDefinitionWithArgument(
             'silvioq.report.table.doctrineloader',
             0, new Reference('doctrine.orm.entity_manager'));
@@ -44,7 +43,5 @@ class  DependencyTest extends AbstractExtensionTestCase
             'silvioq.table.loader',
             [ 'priority' => 0 ]
         );
-            
     }
-
 }
