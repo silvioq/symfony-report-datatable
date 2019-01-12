@@ -25,3 +25,6 @@ services:
         public: false
         tags:
             - { name: 'silvioq.table.loader', priority: 0 }
+
+    Silvioq\ReportBundle\Table\TableFactory:
+        alias: "silvioq.report.table"
