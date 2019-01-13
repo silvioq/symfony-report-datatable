@@ -9,6 +9,7 @@ use Silvioq\ReportBundle\Table\TableFactory;
 use Silvioq\ReportBundle\Table\DefinitionLoader\DoctrineDefinitionLoader;
 use Silvioq\ReportBundle\Datatable\DatatableFactory;
 use Silvioq\ReportBundle\Datatable\Builder;
+use Silvioq\ReportBundle\Datatable\Condition\ConditionBuilder;
 
 /**
  * Clase para chequear la inicialización del servicio en symfony
@@ -30,6 +31,7 @@ class  DependencyTest extends AbstractExtensionTestCase
         $this->assertContainerBuilderHasService( 'silvioq.report.dt', Builder::class );
         $this->assertContainerBuilderHasService( 'silvioq.report.table', TableFactory::class );
         $this->assertContainerBuilderHasService( 'silvioq.report.table.doctrineloader', DoctrineDefinitionLoader::class);
+        $this->assertContainerBuilderHasService('silvioq.report.dt.condition', ConditionBuilder::class);
         $this->assertContainerBuilderHasAlias('datatable', "silvioq.report.dt");
         $this->assertContainerBuilderHasServiceDefinitionWithArgument(
             'silvioq.report.table.doctrineloader',
@@ -43,5 +45,10 @@ class  DependencyTest extends AbstractExtensionTestCase
             'silvioq.table.loader',
             [ 'priority' => 0 ]
         );
+        $this->assertContainerBuilderHasServiceDefinitionWithArgument(
+            'silvioq.report.dt.condition',
+            0, new Reference('annotation_reader'));
+
+        $this->assertContainerBuilderHasAlias(ConditionBuilder::class, "silvioq.report.dt.condition");
     }
 }

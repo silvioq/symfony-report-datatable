@@ -19,6 +19,11 @@ services:
         class: Silvioq\ReportBundle\Table\TableFactory
         public: true
 
+    silvioq.report.dt.condition:
+        class: Silvioq\ReportBundle\Datatable\Condition\ConditionBuilder
+        public: true
+        arguments: ["@annotation_reader"]
+
     silvioq.report.table.doctrineloader:
         class: Silvioq\ReportBundle\Table\DefinitionLoader\DoctrineDefinitionLoader
         arguments: ["@doctrine.orm.entity_manager", "@annotation_reader"]
@@ -28,3 +33,6 @@ services:
 
     Silvioq\ReportBundle\Table\TableFactory:
         alias: "silvioq.report.table"
+
+    Silvioq\ReportBundle\Datatable\Condition\ConditionBuilder:
+        alias: "silvioq.report.dt.condition"
