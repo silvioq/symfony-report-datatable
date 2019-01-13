@@ -12,7 +12,7 @@ class ConditionConfiguratorTest extends TestCase
     {
         $cond = new ConditionConfigurator();
         $cond->add("field", "a.column", "eq");
-        $this->assertIsArray($cond->get("field"));
+        $this->assertTrue(is_array($cond->get("field")));
     }
 
     /**

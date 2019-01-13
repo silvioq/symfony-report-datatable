@@ -45,7 +45,7 @@ class ConditionBuilderTest extends TestCase
             ;
 
         $builder = new ConditionBuilder($reader);
-        $builder->runCondition($data, $mockDt);
+        $builder->configureCondition($data, $mockDt);
 
         $function($mockQb);
     }
@@ -96,7 +96,47 @@ class ConditionBuilderTest extends TestCase
             ;
 
         $builder = new ConditionBuilder($reader);
-        $builder->runCondition($data, $mockDt);
+        $builder->configureCondition($data, $mockDt);
+
+        $function($mockQb);
+    }
+
+    public function testBuilderOtherClass()
+    {
+        $reader = new \Doctrine\Common\Annotations\AnnotationReader();
+        $data = ['column' => 'one'];
+        $mockDt = $this->getMockBuilder(DatatableBuilder::class)
+                ->disableOriginalConstructor()
+                ->getMock();
+        $mockQb = $this->getMockBuilder(QueryBuilder::class)
+                ->disableOriginalConstructor()
+                ->getMock();
+
+        $mockExpr = $this->getMockBuilder(\Doctrine\ORM\Query\Expr::class)
+                ->disableOriginalConstructor()
+                ->getMock();
+
+        $function = null;
+        $mockDt->expects($this->once())
+            ->method('condition')
+            ->with($this->callback(function($data) use (&$function) {
+                $function = $data;
+                return is_callable($function);
+            }));
+            ;
+
+        $mockQb->expects($this->exactly(1))
+            ->method('expr')
+            ->with()
+            ->willReturn($mockExpr);
+
+        $mockExpr->expects($this->once())
+            ->method('like')
+            ->with('a.column', ':condition_builder1')
+            ;
+
+        $builder = new ConditionBuilder($reader);
+        $builder->configureCondition($data, $mockDt, Mock\MockClass::class);
 
         $function($mockQb);
     }

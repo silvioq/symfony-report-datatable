@@ -22,22 +22,33 @@ class ConditionBuilder
         $this->reader = $reader;
     }
 
-    public function runCondition($element, DatatableBuilder $dataTable)
+    public function configureCondition($element, DatatableBuilder $dataTable, string $className = null)
     {
-        $configurator = ConditionConfigurator::loadFromClass($this->reader, get_class($element));
-        $method = $configurator->getMethod();
-        if (null === $method) {
-            throw new \LogicException(sprintf('Not defined method for retrieve data in %s.', get_class($element)));
+        if (null === $className) {
+            $className = get_class($element);
         }
+        $configurator = ConditionConfigurator::loadFromClass($this->reader, $className);
+        if (is_array($element)) {
+            $data = $element;
+        } else {
+            $method = $configurator->getMethod();
+            if (null === $method && method_exists($element, "getData")){
+                $method = "getData";
+            }
+            if (null === $method) {
+                throw new \LogicException(sprintf('Not defined method for retrieve data in %s.', get_class($element)));
+            }
 
-        $data = $element->$method();
-        if (!is_array($data)) {
-            throw new \LogicException(sprintf('Method %s::%s must return array.', get_class($element), $method));
+            $data = $element->$method();
+
+            if (!is_array($data)) {
+                throw new \LogicException(sprintf('Method %s::%s must return array.', get_class($element), $method));
+            }
         }
 
         $dataTable->condition(function (QueryBuilder $queryBuilder) use($configurator, $data, $element) {
             foreach ($data as $field => $value) {
-                if (null === $value || '' === trim($value)) {
+                if (null === $value || (is_string($value) && '' === trim($value)) || (is_array($value) && 0 == count($value))) {
                     continue;
                 }
 

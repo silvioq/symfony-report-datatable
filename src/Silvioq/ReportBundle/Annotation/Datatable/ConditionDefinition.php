@@ -1,6 +1,6 @@
 <?php
 
-namespace Silvioq\ReportBundle\Annotation\DataTable;
+namespace Silvioq\ReportBundle\Annotation\Datatable;
 
 use Doctrine\Common\Annotations\Annotation;
 use Symfony\Component\OptionsResolver\OptionsResolver;
