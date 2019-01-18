@@ -48,7 +48,11 @@ class ConditionBuilder
 
         $dataTable->condition(function (QueryBuilder $queryBuilder) use($configurator, $data, $element) {
             foreach ($data as $field => $value) {
-                if (null === $value || (is_string($value) && '' === trim($value)) || (is_array($value) && 0 == count($value))) {
+                if (null === $value ||
+                    (is_string($value) && '' === trim($value)) ||
+                    (is_array($value) && 0 == count($value)) ||
+                    ($value instanceof \Countable && count($value) == 0)
+                    ) {
                     continue;
                 }
 
